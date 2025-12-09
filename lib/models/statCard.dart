@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class StatCard extends StatelessWidget {
+class StatCard extends StatefulWidget {
   final String title;
   final String value;
   final IconData icon;
@@ -19,21 +19,26 @@ class StatCard extends StatelessWidget {
   });
 
   @override
+  State<StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<StatCard> {
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isOutlined ? Colors.white : backgroundColor,
+        color: widget.isOutlined ? Colors.white : widget.backgroundColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           // เปลี่ยนสีขอบเป็นสี themeColor แบบจางลง (0.3 - 0.5 กำลังดีครับ)
-          color: themeColor.withOpacity(0.3),
+          color: widget.themeColor.withOpacity(0.3),
           width: 1.5, // เพิ่มความหนานิดนึงเพื่อให้เห็นสีชัดขึ้น
         ),
-        boxShadow: isOutlined
+        boxShadow: widget.isOutlined
             ? [
                 BoxShadow(
-                  color: themeColor.withOpacity(
+                  color: widget.themeColor.withOpacity(
                     0.1,
                   ), // เงาก็ใช้สี Theme อ่อนๆ ได้นะครับ
                   blurRadius: 8,
@@ -50,12 +55,12 @@ class StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isOutlined
-                  ? themeColor.withOpacity(0.1)
+              color: widget.isOutlined
+                  ? widget.themeColor.withOpacity(0.1)
                   : Colors.white.withOpacity(0.6),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: themeColor, size: 24),
+            child: Icon(widget.icon, color: widget.themeColor, size: 24),
           ),
 
           const SizedBox(width: 16), // ระยะห่างระหว่าง Icon กับ Text (ตามที่ขอ)
@@ -66,7 +71,7 @@ class StatCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start, // จัดชิดซ้าย
               children: [
                 Text(
-                  title,
+                  widget.title,
                   style: TextStyle(
                     fontSize: 14, // ปรับขนาด Text หัวข้อ
                     color: Colors.grey[600],
@@ -76,7 +81,7 @@ class StatCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2), // ระยะห่างระหว่างหัวข้อกับตัวเลข
                 Text(
-                  value,
+                  widget.value,
                   style: TextStyle(
                     fontSize: 20, // ปรับขนาด Value
                     fontWeight: FontWeight.bold,
