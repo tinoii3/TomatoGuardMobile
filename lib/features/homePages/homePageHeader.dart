@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:tomato_guard_mobile/shared/theme/colors.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomePageHeader extends StatelessWidget {
   const HomePageHeader({super.key});
@@ -20,10 +20,21 @@ class HomePageHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  FaIcon(FontAwesomeIcons.leaf, color: Colors.white, size: 35),
-                  SizedBox(width: 20),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.leaf,
+                      color: Colors.white,
+                      size: 35,
+                    ),
+                  ),
+                  SizedBox(width: 15),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -32,12 +43,12 @@ class HomePageHeader extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 22,
+                          fontSize: 20,
                         ),
                       ),
                       Text(
                         "ระบบตรวจโรคใบมะเขือเทศ",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
@@ -51,14 +62,14 @@ class HomePageHeader extends StatelessWidget {
                       "วิเคราะห์โรคพืชด้วย AI",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(height: 5),
                     Text(
                       "ถ่ายรูปใบมะเขือเทศเพื่อตรวจสอบโรค",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ],
                 ),
@@ -96,11 +107,7 @@ class HomePageHeader extends StatelessWidget {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FaIcon(
-                    FontAwesomeIcons.camera,
-                    color: Colors.white,
-                    size: 55,
-                  ),
+                  Icon(LucideIcons.camera, color: Colors.white, size: 55),
                   SizedBox(height: 10),
                   Text(
                     "สแกน",

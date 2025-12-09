@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tomato_guard_mobile/features/homePages/homePageHeader.dart';
-import 'package:tomato_guard_mobile/features/homePages/StatScanPage.dart';
+import 'package:tomato_guard_mobile/features/homePages/StatScan.dart';
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -9,12 +9,12 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white.withOpacity(0.92),
+        backgroundColor: Colors.white.withOpacity(0.95),
         body: Column(
           children: [
             HomePageHeader(),
             const SizedBox(height: 150),
-            StatScanPage(),
+            StatScan(),
           ],
         ),
       ),
