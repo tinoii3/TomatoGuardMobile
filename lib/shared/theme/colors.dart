@@ -14,6 +14,7 @@ class AppColors {
   static final destructive = hsl(0, 75, 55); // Tomato red
   static final warning = hsl(35, 95, 55);
   static final success = hsl(145, 65, 40);
+  static final backgroundSecondary = Colors.white.withOpacity(0.95);
 
   // --- Gradients ---
   static final gradientPrimary = LinearGradient(

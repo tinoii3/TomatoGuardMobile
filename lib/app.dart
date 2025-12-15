@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/features/cameraPages/mainCamera.dart';
 import 'package:tomato_guard_mobile/features/homePages/currentScan.dart';
 import 'package:tomato_guard_mobile/features/homePages/homePageHeader.dart';
 import 'package:tomato_guard_mobile/features/homePages/StatScan.dart';
-import 'package:tomato_guard_mobile/shared/theme/colors.dart'; // อย่าลืม import ไฟล์สี
+import 'package:tomato_guard_mobile/shared/theme/colors.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -13,10 +14,24 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  // 1. สร้างตัวแปรเก็บ index หน้าปัจจุบัน
   int _currentIndex = 0;
+  List<Widget> get _pages => [
+    const SingleChildScrollView(
+      child: Column(
+        children: [
+          HomePageHeader(),
+          SizedBox(height: 150),
+          StatScan(),
+          SizedBox(height: 20),
+          CurrentScan(),
+          SizedBox(height: 30),
+        ],
+      ),
+    ),
+    MainCamera(onBackPressed: () => _onItemTapped(0)),
+    const Center(child: Text("หน้าประวัติการสแกน")),
+  ];
 
-  // 2. ฟังก์ชันเมื่อกดเปลี่ยนหน้า
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -28,20 +43,9 @@ class _MainAppState extends State<MainApp> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.white.withOpacity(0.95),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              const HomePageHeader(),
-              const SizedBox(height: 150),
-              const StatScan(),
-              const SizedBox(height: 20),
-              const CurrentScan(),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
+        body: IndexedStack(index: _currentIndex, children: _pages),
+
         bottomNavigationBar: Container(
-          // เพิ่มเงาให้แถบเมนูดูมีมิติขึ้น (Optional)
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
@@ -55,11 +59,11 @@ class _MainAppState extends State<MainApp> {
             currentIndex: _currentIndex,
             onTap: _onItemTapped,
             backgroundColor: Colors.white,
+
             selectedItemColor: AppColors.primary,
             unselectedItemColor: Colors.grey,
             showUnselectedLabels: true,
             type: BottomNavigationBarType.fixed,
-
             items: [
               BottomNavigationBarItem(
                 icon: const Icon(LucideIcons.house),
@@ -80,7 +84,7 @@ class _MainAppState extends State<MainApp> {
           ),
         ),
       ),
-      title: 'My Awesome App',
+      title: 'Tomato Guard',
       debugShowCheckedModeBanner: false,
     );
   }
@@ -89,7 +93,7 @@ class _MainAppState extends State<MainApp> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: AppColors.gradientPrimary,
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: Colors.white, size: 24),
