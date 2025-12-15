@@ -4,6 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/services/disease_classifier.dart';
 import 'package:tomato_guard_mobile/shared/theme/colors.dart';
 import 'package:tomato_guard_mobile/shared/widget/buttonAction.dart';
 
@@ -47,6 +48,99 @@ class _MainCameraState extends State<MainCamera> {
     setState(() {
       _selectedImage = null;
     });
+  }
+
+  // เพิ่มตัวแปร Classifier
+  final DiseaseClassifier _classifier = DiseaseClassifier();
+  bool _isAnalyzing = false; // เอาไว้หมุนติ้วๆ ตอนโหลด
+
+  @override
+  void initState() {
+    super.initState();
+    _classifier.loadModel(); // โหลดโมเดลตอนเปิดหน้า
+  }
+
+  @override
+  void dispose() {
+    _classifier.close(); // ปิดคืนเมมโมรี่
+    super.dispose();
+  }
+
+  Future<void> _runAnalysis() async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    // ส่งรูปไปให้ Class ที่เราเขียนไว้
+    final result = await _classifier.predict(_selectedImage!);
+
+    setState(() {
+      _isAnalyzing = false;
+    });
+
+    if (result != null) {
+      // แสดงผลลัพธ์ (เบื้องต้นใช้ Dialog ง่ายๆ ก่อน)
+      _showResultDialog(result);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("เกิดข้อผิดพลาดในการวิเคราะห์")),
+      );
+    }
+  }
+
+  void _showResultDialog(Map<String, dynamic> result) {
+    // แปลงชื่อโรคเป็นภาษาไทย (ตัวอย่าง)
+    String label = result['label'];
+    double confidence = result['confidence'] * 100;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(LucideIcons.scanLine, color: Colors.blue),
+            SizedBox(width: 8),
+            Text("ผลการวิเคราะห์"),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("โรคที่ตรวจพบ:", style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Text(
+              label, // หรือจะ Map ชื่อไทยตรงนี้ก็ได้
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text("ความมั่นใจ:", style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Text(
+              "${confidence.toStringAsFixed(2)}%",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: confidence > 80 ? Colors.green : Colors.orange,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ตกลง", style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -103,49 +197,51 @@ class _MainCameraState extends State<MainCamera> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _selectedImage != null
-                  ? _buildImagePreview() // โชว์รูปอย่างเดียว
-                  : _buildUploadPlaceholder(), // โชว์กล่องอัปโหลด
+                  ? _buildImagePreview()
+                  : _buildUploadPlaceholder(),
             ),
 
             const SizedBox(height: 20),
 
             // --- ส่วนที่ 2: Tips (แสดงตลอด) ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "💡เคล็ดลับการถ่ายรูป",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+            if (_selectedImage == null) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "💡เคล็ดลับการถ่ายรูป",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    _buildTipItem("ถ่ายใบที่แสดงอาการชัดเจน"),
-                    const SizedBox(height: 6),
-                    _buildTipItem("ให้แสงสว่างเพียงพอ"),
-                    const SizedBox(height: 6),
-                    _buildTipItem("ถ่ายใกล้ๆ ให้เห็นรายละเอียด"),
-                    const SizedBox(height: 6),
-                    _buildTipItem("หลีกเลี่ยงแสงสะท้อนหรือเงาบัง"),
-                  ],
+                      const SizedBox(height: 6),
+                      _buildTipItem("ถ่ายใบที่แสดงอาการชัดเจน"),
+                      const SizedBox(height: 6),
+                      _buildTipItem("ให้แสงสว่างเพียงพอ"),
+                      const SizedBox(height: 6),
+                      _buildTipItem("ถ่ายใกล้ๆ ให้เห็นรายละเอียด"),
+                      const SizedBox(height: 6),
+                      _buildTipItem("หลีกเลี่ยงแสงสะท้อนหรือเงาบัง"),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
 
             // --- ส่วนที่ 3: ปุ่ม Action (แสดงเฉพาะตอนมีรูป และอยู่ใต้ Tips) ---
             if (_selectedImage != null) ...[
-              const SizedBox(height: 30),
-              _buildAnalysisActions(), // ปุ่มต่างๆ ย้ายมาตรงนี้
+              const SizedBox(height: 20),
+              _buildAnalysisActions(),
             ],
 
             const SizedBox(height: 40),
@@ -176,7 +272,7 @@ class _MainCameraState extends State<MainCamera> {
         child: Image.file(
           _selectedImage!,
           width: double.infinity,
-          height: 350, // ความสูงรูป
+          height: 270,
           fit: BoxFit.cover,
         ),
       ),
@@ -194,6 +290,7 @@ class _MainCameraState extends State<MainCamera> {
       ),
       child: Container(
         width: double.infinity,
+        height: 270,
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -258,14 +355,11 @@ class _MainCameraState extends State<MainCamera> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          // ปุ่มเริ่มวิเคราะห์ (ปุ่มใหญ่)
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                // TODO: ใส่ Logic วิเคราะห์
-                print("Start analyze");
-              },
+              // 5. เชื่อมปุ่มกับฟังก์ชัน _runAnalysis
+              onPressed: _isAnalyzing ? null : _runAnalysis,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -275,21 +369,29 @@ class _MainCameraState extends State<MainCamera> {
                 elevation: 5,
                 shadowColor: AppColors.primary.withOpacity(0.4),
               ),
-              child: const Text(
-                "เริ่มวิเคราะห์โรค",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isAnalyzing
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      "เริ่มวิเคราะห์โรค",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(height: 16),
-          // ปุ่มตัวเลือกแก้ไข (ถ่ายใหม่/เลือกใหม่)
           if (_lastImageSource == ImageSource.camera)
             SizedBox(
-              width: double.infinity, // ให้ปุ่มเต็มความกว้าง
+              width: double.infinity,
               child: ActionButton(
                 icon: LucideIcons.camera,
                 label: "ถ่ายใหม่",
@@ -299,7 +401,7 @@ class _MainCameraState extends State<MainCamera> {
             )
           else if (_lastImageSource == ImageSource.gallery)
             SizedBox(
-              width: double.infinity, // ให้ปุ่มเต็มความกว้าง
+              width: double.infinity,
               child: ActionButton(
                 icon: LucideIcons.image,
                 label: "เลือกใหม่",
@@ -339,32 +441,3 @@ class _MainCameraState extends State<MainCamera> {
     );
   }
 }
-
-// // ปุ่มวิเคราะห์ (โชว์เฉพาะตอนมีรูป)
-// if (_selectedImage != null) ...[
-//   const SizedBox(height: 16),
-//   SizedBox(
-//     width: double.infinity,
-//     child: ElevatedButton(
-//       onPressed: () {
-//         // ใส่ Logic ส่งรูปไป AI ตรงนี้
-//         print("กำลังส่งรูปไปวิเคราะห์...");
-//       },
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: AppColors.primary,
-//         padding: const EdgeInsets.symmetric(vertical: 16),
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//       ),
-//       child: const Text(
-//         "เริ่มวิเคราะห์",
-//         style: TextStyle(
-//           color: Colors.white,
-//           fontSize: 18,
-//           fontWeight: FontWeight.bold,
-//         ),
-//       ),
-//     ),
-//   ),
-// ],

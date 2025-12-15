@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:tomato_guard_mobile/features/cameraPages/mainCamera.dart';
+import 'package:tomato_guard_mobile/features/historyPages/mainHistory.dart';
 import 'package:tomato_guard_mobile/features/homePages/currentScan.dart';
 import 'package:tomato_guard_mobile/features/homePages/homePageHeader.dart';
 import 'package:tomato_guard_mobile/features/homePages/StatScan.dart';
@@ -29,7 +30,7 @@ class _MainAppState extends State<MainApp> {
       ),
     ),
     MainCamera(onBackPressed: () => _onItemTapped(0)),
-    const Center(child: Text("หน้าประวัติการสแกน")),
+    MainHistory(onBackPressed: () => _onItemTapped(0)),
   ];
 
   void _onItemTapped(int index) {
