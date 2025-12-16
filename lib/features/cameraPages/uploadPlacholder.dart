@@ -64,6 +64,7 @@ class UploadPlaceholder extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ActionButton(
+                    
                     icon: LucideIcons.camera,
                     label: "ถ่ายรูป",
                     onTap: onCameraTap,

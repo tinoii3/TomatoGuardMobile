@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:tomato_guard_mobile/shared/theme/colors.dart';
 import 'package:tomato_guard_mobile/shared/widget/buttonAction.dart';
 
 class AnalysisActions extends StatelessWidget {
   final bool isAnalyzing;
   final VoidCallback onAnalyze;
   final ImageSource? lastImageSource;
-  final VoidCallback onRetake; // สำหรับถ่ายใหม่/เลือกใหม่
+  final VoidCallback onRetake;
 
   const AnalysisActions({
     super.key,
@@ -26,37 +25,17 @@ class AnalysisActions extends StatelessWidget {
         children: [
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isAnalyzing ? null : onAnalyze,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 5,
-                shadowColor: AppColors.primary.withOpacity(0.4),
-              ),
-              child: isAnalyzing
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "เริ่มวิเคราะห์โรค",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+            child: ActionButton(
+              icon: LucideIcons.scanLine,
+              label: "เริ่มวิเคราะห์โรค",
+              onTap: onAnalyze,
+              isLoading: isAnalyzing,
+              isOutlined: false,
             ),
           ),
+
           const SizedBox(height: 16),
+
           if (lastImageSource == ImageSource.camera)
             SizedBox(
               width: double.infinity,

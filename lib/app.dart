@@ -4,7 +4,7 @@ import 'package:tomato_guard_mobile/features/cameraPages/mainCamera.dart';
 import 'package:tomato_guard_mobile/features/historyPages/mainHistory.dart';
 import 'package:tomato_guard_mobile/features/homePages/currentScan.dart';
 import 'package:tomato_guard_mobile/features/homePages/homePageHeader.dart';
-import 'package:tomato_guard_mobile/features/homePages/StatScan.dart';
+import 'package:tomato_guard_mobile/features/homePages/statScan.dart';
 import 'package:tomato_guard_mobile/shared/theme/colors.dart';
 
 class MainApp extends StatefulWidget {
@@ -17,14 +17,14 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
   List<Widget> get _pages => [
-    const SingleChildScrollView(
+    SingleChildScrollView(
       child: Column(
         children: [
-          HomePageHeader(),
-          SizedBox(height: 150),
+          HomePageHeader(onScanPressed: () => _onItemTapped(1)),
+          SizedBox(height: 20),
           StatScan(),
           SizedBox(height: 20),
-          CurrentScan(),
+          CurrentScan(onSeeAll: () => _onItemTapped(2)),
           SizedBox(height: 30),
         ],
       ),

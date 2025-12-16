@@ -128,10 +128,16 @@ class _MainCameraState extends State<MainCamera> {
             ),
           ],
         ),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("ตกลง", style: TextStyle(color: Colors.blue)),
+            child: const Text("ยกเลิก", style: TextStyle(color: Colors.blue)),
+          ),
+          TextButton(
+            onPressed: () => {},
+            child: const Text("บันทึก", style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -166,7 +172,7 @@ class _MainCameraState extends State<MainCamera> {
         actions: [
           if (_selectedImage != null)
             IconButton(
-              icon: const Icon(LucideIcons.trash2, color: Colors.red),
+              icon: const Icon(LucideIcons.refreshCcw, color: Colors.black),
               onPressed: _clearImage,
               tooltip: 'ลบรูปภาพ',
             ),
@@ -176,7 +182,7 @@ class _MainCameraState extends State<MainCamera> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 35),
+            const SizedBox(height: 20),
             const Text(
               'วิเคราะห์โรคด้วย AI',
               style: TextStyle(
