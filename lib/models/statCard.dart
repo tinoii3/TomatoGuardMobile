@@ -31,16 +31,13 @@ class _StatCardState extends State<StatCard> {
         color: widget.isOutlined ? Colors.white : widget.backgroundColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          // เปลี่ยนสีขอบเป็นสี themeColor แบบจางลง (0.3 - 0.5 กำลังดีครับ)
           color: widget.themeColor.withOpacity(0.3),
-          width: 1.5, // เพิ่มความหนานิดนึงเพื่อให้เห็นสีชัดขึ้น
+          width: 1.5,
         ),
         boxShadow: widget.isOutlined
             ? [
                 BoxShadow(
-                  color: widget.themeColor.withOpacity(
-                    0.1,
-                  ), // เงาก็ใช้สี Theme อ่อนๆ ได้นะครับ
+                  color: widget.themeColor.withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -48,42 +45,36 @@ class _StatCardState extends State<StatCard> {
             : null,
       ),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.center, // จัดให้อยู่กึ่งกลางแนวตั้ง
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // --- ส่วน Icon ด้านซ้าย ---
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: widget.isOutlined
                   ? widget.themeColor.withOpacity(0.1)
                   : Colors.white.withOpacity(0.6),
               shape: BoxShape.circle,
             ),
-            child: Icon(widget.icon, color: widget.themeColor, size: 24),
+            child: Icon(widget.icon, color: widget.themeColor, size: 21),
           ),
 
-          const SizedBox(width: 16), // ระยะห่างระหว่าง Icon กับ Text (ตามที่ขอ)
-          // --- ส่วน Text และ Value ด้านขวา ---
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // จัดกลางแนวตั้ง
-              crossAxisAlignment: CrossAxisAlignment.start, // จัดชิดซ้าย
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   widget.title,
-                  style: TextStyle(
-                    fontSize: 14, // ปรับขนาด Text หัวข้อ
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[800]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2), // ระยะห่างระหว่างหัวข้อกับตัวเลข
+                const SizedBox(height: 2),
                 Text(
                   widget.value,
                   style: TextStyle(
-                    fontSize: 20, // ปรับขนาด Value
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),

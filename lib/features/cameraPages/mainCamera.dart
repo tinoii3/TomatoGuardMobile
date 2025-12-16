@@ -1,12 +1,13 @@
 import 'dart:io';
 
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/features/cameraPages/analysisActions.dart';
+import 'package:tomato_guard_mobile/features/cameraPages/cameraTips.dart';
+import 'package:tomato_guard_mobile/features/cameraPages/imagePreview.dart';
+import 'package:tomato_guard_mobile/features/cameraPages/uploadPlacholder.dart';
 import 'package:tomato_guard_mobile/services/disease_classifier.dart';
-import 'package:tomato_guard_mobile/shared/theme/colors.dart';
-import 'package:tomato_guard_mobile/shared/widget/buttonAction.dart';
 
 class MainCamera extends StatefulWidget {
   final VoidCallback? onBackPressed;
@@ -19,10 +20,22 @@ class MainCamera extends StatefulWidget {
 
 class _MainCameraState extends State<MainCamera> {
   File? _selectedImage;
-
   ImageSource? _lastImageSource;
-
   final ImagePicker _picker = ImagePicker();
+  final DiseaseClassifier _classifier = DiseaseClassifier();
+  bool _isAnalyzing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _classifier.loadModel();
+  }
+
+  @override
+  void dispose() {
+    _classifier.close();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -31,6 +44,7 @@ class _MainCameraState extends State<MainCamera> {
         maxWidth: 1000,
         maxHeight: 1000,
         imageQuality: 100,
+        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (pickedFile != null) {
@@ -50,22 +64,6 @@ class _MainCameraState extends State<MainCamera> {
     });
   }
 
-  // เพิ่มตัวแปร Classifier
-  final DiseaseClassifier _classifier = DiseaseClassifier();
-  bool _isAnalyzing = false; // เอาไว้หมุนติ้วๆ ตอนโหลด
-
-  @override
-  void initState() {
-    super.initState();
-    _classifier.loadModel(); // โหลดโมเดลตอนเปิดหน้า
-  }
-
-  @override
-  void dispose() {
-    _classifier.close(); // ปิดคืนเมมโมรี่
-    super.dispose();
-  }
-
   Future<void> _runAnalysis() async {
     if (_selectedImage == null) return;
 
@@ -73,7 +71,6 @@ class _MainCameraState extends State<MainCamera> {
       _isAnalyzing = true;
     });
 
-    // ส่งรูปไปให้ Class ที่เราเขียนไว้
     final result = await _classifier.predict(_selectedImage!);
 
     setState(() {
@@ -81,7 +78,6 @@ class _MainCameraState extends State<MainCamera> {
     });
 
     if (result != null) {
-      // แสดงผลลัพธ์ (เบื้องต้นใช้ Dialog ง่ายๆ ก่อน)
       _showResultDialog(result);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,7 +87,6 @@ class _MainCameraState extends State<MainCamera> {
   }
 
   void _showResultDialog(Map<String, dynamic> result) {
-    // แปลงชื่อโรคเป็นภาษาไทย (ตัวอย่าง)
     String label = result['label'];
     double confidence = result['confidence'] * 100;
 
@@ -113,7 +108,7 @@ class _MainCameraState extends State<MainCamera> {
             Text("โรคที่ตรวจพบ:", style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 4),
             Text(
-              label, // หรือจะ Map ชื่อไทยตรงนี้ก็ได้
+              label,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -159,7 +154,11 @@ class _MainCameraState extends State<MainCamera> {
         ),
         title: const Text(
           'สแกนใบมะเขือเทศ',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18, // ผมคงค่า fontSize ตาม logic เดิม
+          ),
         ),
         backgroundColor: Colors.white,
         titleSpacing: 10,
@@ -188,256 +187,50 @@ class _MainCameraState extends State<MainCamera> {
             ),
             const SizedBox(height: 5),
             const Text(
-              'ถ่ายรูปหรือเลือกภาพใบมะเขือเทศที่ต้องการตรวจสอบ',
+              'ถ่ายรูปหรือเลือกภาพใบมะเขือเทศ',
               style: TextStyle(color: Colors.black, fontSize: 16),
             ),
             const SizedBox(height: 20),
 
-            // --- ส่วนที่ 1: แสดงรูปภาพ หรือ กล่องอัปโหลด ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _selectedImage != null
-                  ? _buildImagePreview()
-                  : _buildUploadPlaceholder(),
+                  ? ImagePreview(imageFile: _selectedImage!) // ใช้ Widget แยก
+                  : UploadPlaceholder(
+                      // ใช้ Widget แยก
+                      onCameraTap: () => _pickImage(ImageSource.camera),
+                      onGalleryTap: () => _pickImage(ImageSource.gallery),
+                    ),
             ),
 
             const SizedBox(height: 20),
 
-            // --- ส่วนที่ 2: Tips (แสดงตลอด) ---
+            // --- Tips (แสดงเมื่อไม่มีรูป) ---
             if (_selectedImage == null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "💡เคล็ดลับการถ่ายรูป",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _buildTipItem("ถ่ายใบที่แสดงอาการชัดเจน"),
-                      const SizedBox(height: 6),
-                      _buildTipItem("ให้แสงสว่างเพียงพอ"),
-                      const SizedBox(height: 6),
-                      _buildTipItem("ถ่ายใกล้ๆ ให้เห็นรายละเอียด"),
-                      const SizedBox(height: 6),
-                      _buildTipItem("หลีกเลี่ยงแสงสะท้อนหรือเงาบัง"),
-                    ],
-                  ),
-                ),
-              ),
+              const CameraTips(), // ใช้ Widget แยก
             ],
 
-            // --- ส่วนที่ 3: ปุ่ม Action (แสดงเฉพาะตอนมีรูป และอยู่ใต้ Tips) ---
+            // --- Action Buttons (แสดงเมื่อมีรูป) ---
             if (_selectedImage != null) ...[
               const SizedBox(height: 20),
-              _buildAnalysisActions(),
+              AnalysisActions(
+                // ใช้ Widget แยก
+                isAnalyzing: _isAnalyzing,
+                onAnalyze: _runAnalysis,
+                lastImageSource: _lastImageSource,
+                onRetake: () {
+                  // เช็คว่ารูปล่าสุดมาจากไหน แล้วเรียกฟังก์ชันเดิม
+                  if (_lastImageSource != null) {
+                    _pickImage(_lastImageSource!);
+                  }
+                },
+              ),
             ],
 
             const SizedBox(height: 40),
           ],
         ),
       ),
-    );
-  }
-
-  // Widget 1: แสดงรูปภาพเต็มกรอบ (ไม่มีปุ่มข้างในแล้ว)
-  Widget _buildImagePreview() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      // ClipRRect ตัดขอบรูปให้มนทั้ง 4 ด้าน
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Image.file(
-          _selectedImage!,
-          width: double.infinity,
-          height: 270,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  // Widget 2: กล่องอัปโหลด (เส้นประ)
-  Widget _buildUploadPlaceholder() {
-    return DottedBorder(
-      options: RoundedRectDottedBorderOptions(
-        color: AppColors.primary,
-        strokeWidth: 1,
-        dashPattern: const [8, 4],
-        radius: const Radius.circular(24),
-      ),
-      child: Container(
-        width: double.infinity,
-        height: 270,
-        padding: const EdgeInsets.all(30),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.upload,
-                size: 40,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'กรุณาเลือกจากตัวเลือกด้านล่าง',
-              style: TextStyle(fontSize: 16, color: Colors.black87),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              children: [
-                Expanded(
-                  child: ActionButton(
-                    icon: LucideIcons.camera,
-                    label: "ถ่ายรูป",
-                    onTap: () => _pickImage(ImageSource.camera),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ActionButton(
-                    icon: LucideIcons.image,
-                    label: "แกลเลอรี่",
-                    onTap: () => _pickImage(ImageSource.gallery),
-                    isOutlined: true,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Widget 3: ปุ่ม Action ต่างๆ (แยกออกมาแสดงด้านล่างสุด)
-  Widget _buildAnalysisActions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              // 5. เชื่อมปุ่มกับฟังก์ชัน _runAnalysis
-              onPressed: _isAnalyzing ? null : _runAnalysis,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 5,
-                shadowColor: AppColors.primary.withOpacity(0.4),
-              ),
-              child: _isAnalyzing
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "เริ่มวิเคราะห์โรค",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (_lastImageSource == ImageSource.camera)
-            SizedBox(
-              width: double.infinity,
-              child: ActionButton(
-                icon: LucideIcons.camera,
-                label: "ถ่ายใหม่",
-                onTap: () => _pickImage(ImageSource.camera),
-                isOutlined: true,
-              ),
-            )
-          else if (_lastImageSource == ImageSource.gallery)
-            SizedBox(
-              width: double.infinity,
-              child: ActionButton(
-                icon: LucideIcons.image,
-                label: "เลือกใหม่",
-                onTap: () => _pickImage(ImageSource.gallery),
-                isOutlined: true,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTipItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 8, right: 8, left: 4),
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-              height: 1.5,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

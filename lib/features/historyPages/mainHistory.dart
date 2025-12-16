@@ -27,7 +27,11 @@ class _MainHistoryState extends State<MainHistory> {
         ),
         title: const Text(
           'ประวัติการสแกน',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
       ),
       backgroundColor: Colors.grey[200],

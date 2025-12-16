@@ -21,15 +21,15 @@ class StatScan extends StatelessWidget {
               color: Colors.black,
             ),
           ),
+          const SizedBox(height: 16),
           GridView.count(
-            crossAxisCount: 2, // แถวละ 2 กล่อง
-            shrinkWrap: true, // ให้ขยายขนาดเท่าเนื้อหา (เพราะอยู่ใน Column)
-            physics:
-                const NeverScrollableScrollPhysics(), // ปิดการเลื่อนของ Grid (ใช้ Scroll ของหน้าหลักแทน)
-            crossAxisSpacing: 16, // ระยะห่างแนวนอน
-            mainAxisSpacing: 16, // ระยะห่างแนวตั้ง
-            childAspectRatio:
-                1.7, // สัดส่วน กว้าง:สูง ของกล่อง (ปรับเลขนี้ให้กล่องอ้วน/ผอม)
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.7,
             children: [
               StatCard(
                 title: "สแกนทั้งหมด",

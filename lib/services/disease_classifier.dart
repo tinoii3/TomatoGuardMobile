@@ -7,17 +7,15 @@ class DiseaseClassifier {
   Interpreter? _interpreter;
   List<String>? _labels;
 
-  static const int inputSize = 224; // ตามที่คุณเทรนมา
+  static const int inputSize = 224;
 
   Future<void> loadModel() async {
     try {
-      // โหลดโมเดล
       _interpreter = await Interpreter.fromAsset(
-        'assets/models/tomato_disease_model_quant.tflite',
+        'assets/models/tomato_disease_model_quant_v3.tflite',
       );
       print('✅ Model loaded successfully');
 
-      // โหลด Labels
       final labelData = await rootBundle.loadString('assets/models/labels.txt');
       _labels = labelData
           .split('\n')
@@ -35,20 +33,16 @@ class DiseaseClassifier {
       return null;
     }
 
-    // 1. อ่านและแปลงรูปภาพ
     var imageBytes = await imageFile.readAsBytes();
     var image = img.decodeImage(imageBytes);
     if (image == null) return null;
 
-    // 2. Resize ให้เหลือ 224x224
     var resizedImage = img.copyResize(
       image,
       width: inputSize,
       height: inputSize,
     );
 
-    // 3. แปลงเป็น Float32 [1, 224, 224, 3] และ Normalize (0-255 -> 0.0-1.0)
-    // สาเหตุ: ใน Python คุณใช้ rescale=1./255
     var input = List.generate(
       1,
       (i) => List.generate(
@@ -61,20 +55,15 @@ class DiseaseClassifier {
       ),
     );
 
-    // 4. เตรียม Output
-    // Output shape: [1, 6] (1 row, 6 classes)
     var output = List.filled(
       1 * _labels!.length,
       0.0,
     ).reshape([1, _labels!.length]);
 
-    // 5. รันโมเดล
     _interpreter!.run(input, output);
 
-    // 6. อ่านผลลัพธ์
     List<double> result = List<double>.from(output[0]);
 
-    // หาค่าสูงสุด (Argmax)
     double maxScore = -1.0;
     int maxIndex = -1;
 
@@ -87,7 +76,7 @@ class DiseaseClassifier {
 
     return {
       'label': _labels![maxIndex],
-      'confidence': maxScore, // ค่าความมั่นใจ (0.0 - 1.0)
+      'confidence': maxScore,
       'index': maxIndex,
     };
   }
