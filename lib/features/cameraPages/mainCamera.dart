@@ -7,7 +7,11 @@ import 'package:tomato_guard_mobile/features/cameraPages/analysisActions.dart';
 import 'package:tomato_guard_mobile/features/cameraPages/cameraTips.dart';
 import 'package:tomato_guard_mobile/features/cameraPages/imagePreview.dart';
 import 'package:tomato_guard_mobile/features/cameraPages/uploadPlacholder.dart';
+import 'package:tomato_guard_mobile/models/leafRecord.dart';
+import 'package:tomato_guard_mobile/services/databaseHelper.dart';
 import 'package:tomato_guard_mobile/services/disease_classifier.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class MainCamera extends StatefulWidget {
   final VoidCallback? onBackPressed;
@@ -29,6 +33,7 @@ class _MainCameraState extends State<MainCamera> {
   void initState() {
     super.initState();
     _classifier.loadModel();
+    DatabaseHelper.instance.debugCheckDiseases();
   }
 
   @override
@@ -86,6 +91,69 @@ class _MainCameraState extends State<MainCamera> {
     }
   }
 
+  // ฟังก์ชันช่วย Save รูปจาก Cache ไปยัง App Doc Dir
+  Future<String> _saveImagePermanently(File sourceFile) async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    final fileName =
+        'tomato_img_${DateTime.now().millisecondsSinceEpoch}${path.extension(sourceFile.path)}';
+    final newPath = path.join(directory.path, fileName);
+    final savedImage = await sourceFile.copy(newPath);
+
+    return savedImage.path;
+  }
+
+  // ฟังก์ชันสำหรับบันทึกข้อมูลลง SQLite
+  Future<void> _saveResultToDB(String label, double confidenceScore) async {
+    try {
+      if (_selectedImage == null) return;
+
+      String cleanLabel = label.trim();
+
+      print("Raw Label: '$label'");
+      print("Clean Label: '$cleanLabel'");
+
+      int? diseaseId = await DatabaseHelper.instance.getDiseaseIdByName(
+        cleanLabel,
+      );
+
+      print("diseaseId: $diseaseId");
+
+      if (diseaseId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("ไม่พบข้อมูลโรค: $label ในฐานข้อมูล")),
+        );
+        return;
+      }
+
+      String permanentPath = await _saveImagePermanently(_selectedImage!);
+      bool isHealthy = label.toLowerCase().contains('healthy');
+
+      final newRecord = LeafRecord(
+        diseaseId: diseaseId,
+        imagePath: permanentPath,
+        isHealthy: isHealthy,
+        confidence: confidenceScore,
+        createdAt: DateTime.now(),
+      );
+
+      await DatabaseHelper.instance.insertRecord(newRecord);
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("บันทึกข้อมูลเรียบร้อยแล้ว"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print("Save Error: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
+    }
+  }
+
   void _showResultDialog(Map<String, dynamic> result) {
     String label = result['label'];
     double confidence = result['confidence'] * 100;
@@ -136,7 +204,9 @@ class _MainCameraState extends State<MainCamera> {
             child: const Text("ยกเลิก", style: TextStyle(color: Colors.blue)),
           ),
           TextButton(
-            onPressed: () => {},
+            onPressed: () async {
+              await _saveResultToDB(label, confidence);
+            },
             child: const Text("บันทึก", style: TextStyle(color: Colors.blue)),
           ),
         ],
@@ -163,7 +233,7 @@ class _MainCameraState extends State<MainCamera> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18, // ผมคงค่า fontSize ตาม logic เดิม
+            fontSize: 18,
           ),
         ),
         backgroundColor: Colors.white,
@@ -201,9 +271,8 @@ class _MainCameraState extends State<MainCamera> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _selectedImage != null
-                  ? ImagePreview(imageFile: _selectedImage!) // ใช้ Widget แยก
+                  ? ImagePreview(imageFile: _selectedImage!)
                   : UploadPlaceholder(
-                      // ใช้ Widget แยก
                       onCameraTap: () => _pickImage(ImageSource.camera),
                       onGalleryTap: () => _pickImage(ImageSource.gallery),
                     ),
@@ -211,21 +280,15 @@ class _MainCameraState extends State<MainCamera> {
 
             const SizedBox(height: 20),
 
-            // --- Tips (แสดงเมื่อไม่มีรูป) ---
-            if (_selectedImage == null) ...[
-              const CameraTips(), // ใช้ Widget แยก
-            ],
+            if (_selectedImage == null) ...[const CameraTips()],
 
-            // --- Action Buttons (แสดงเมื่อมีรูป) ---
             if (_selectedImage != null) ...[
               const SizedBox(height: 20),
               AnalysisActions(
-                // ใช้ Widget แยก
                 isAnalyzing: _isAnalyzing,
                 onAnalyze: _runAnalysis,
                 lastImageSource: _lastImageSource,
                 onRetake: () {
-                  // เช็คว่ารูปล่าสุดมาจากไหน แล้วเรียกฟังก์ชันเดิม
                   if (_lastImageSource != null) {
                     _pickImage(_lastImageSource!);
                   }

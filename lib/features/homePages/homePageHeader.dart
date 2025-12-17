@@ -8,14 +8,12 @@ class HomePageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ความสูงเดิม (280) + ส่วนที่ล้นออกมา (130) = 410
     return SizedBox(
       height: 410, 
       child: Stack(
         clipBehavior: Clip.none,
-        alignment: Alignment.topCenter, // เปลี่ยนเป็นยึดด้านบน
+        alignment: Alignment.topCenter,
         children: [
-          // 1. ส่วน Background Gradient (สูง 280 เท่าเดิม)
           Positioned(
             top: 0,
             left: 0,
@@ -87,8 +85,6 @@ class HomePageHeader extends StatelessWidget {
               ),
             ),
           ),
-          
-          // 2. ปุ่ม Scan (เปลี่ยนจาก bottom: -130 เป็น bottom: 0 ของกล่องใหญ่)
           Positioned(
             bottom: 0, 
             child: GestureDetector(

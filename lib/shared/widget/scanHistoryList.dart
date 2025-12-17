@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/models/leafRecord.dart';
 
 class ScanHistoryList extends StatelessWidget {
-  final List<String> items;
+  final List<LeafRecord> items;
   final int? limit;
   final Function(int index)? onTap;
 
@@ -18,6 +21,10 @@ class ScanHistoryList extends StatelessWidget {
     this.onDelete,
   });
 
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+  }
+
   @override
   Widget build(BuildContext context) {
     final int count = (limit != null && items.length > limit!)
@@ -31,7 +38,7 @@ class ScanHistoryList extends StatelessWidget {
       itemCount: count,
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final item = items[index];
+        final record = items[index];
 
         return GestureDetector(
           onTap: () => onTap?.call(index),
@@ -56,8 +63,11 @@ class ScanHistoryList extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.green[100],
                     borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: FileImage(File(record.imagePath)),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  child: const Icon(Icons.image, color: Colors.green),
                 ),
                 const SizedBox(width: 15),
                 Expanded(
@@ -65,7 +75,7 @@ class ScanHistoryList extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item,
+                        record.diseaseName ?? "Unknown",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -84,7 +94,7 @@ class ScanHistoryList extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            "วันนี้, 10:30 น.",
+                            _formatDate(record.createdAt),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -100,8 +110,8 @@ class ScanHistoryList extends StatelessWidget {
                               color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              "ความมั่นใจ: 85%",
+                            child: Text(
+                              "${record.confidence.toStringAsFixed(1)}%",
                               style: TextStyle(
                                 color: Colors.green,
                                 fontSize: 10,

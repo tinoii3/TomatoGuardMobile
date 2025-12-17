@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/models/leafRecord.dart';
+import 'package:tomato_guard_mobile/services/databaseHelper.dart';
 import 'package:tomato_guard_mobile/shared/widget/scanHistoryList.dart';
 
 class MainHistory extends StatefulWidget {
@@ -12,14 +14,24 @@ class MainHistory extends StatefulWidget {
 }
 
 class _MainHistoryState extends State<MainHistory> {
-  List<String> historyItems = [
-    "Tomato Leaf 001",
-    "Tomato Leaf 002",
-    "Tomato Leaf 003",
-    "Tomato Leaf 004",
-    "Tomato Leaf 005",
-    "Tomato Leaf 006",
-  ];
+  List<LeafRecord> historyItems = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory(); // เรียกโหลดข้อมูลเมื่อเปิดหน้า
+  }
+
+  // ฟังก์ชันดึงข้อมูลจาก DB
+  Future<void> _loadHistory() async {
+    setState(() => isLoading = true);
+    final data = await DatabaseHelper.instance.getAllRecords();
+    setState(() {
+      historyItems = data;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,26 +68,28 @@ class _MainHistoryState extends State<MainHistory> {
         ],
       ),
       backgroundColor: Colors.grey[200],
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            historyItems.isEmpty
-                ? _buildEmptyState()
-                : ScanHistoryList(
-                    items: historyItems,
-                    limit: null,
-                    showDeleteIcon: true,
-                    onDelete: (index) => _deleteItem(index),
-                    onTap: (index) {
-                      print("กดดูรายละเอียด: ${historyItems[index]}");
-                      // TODO: Navigate to Detail Page
-                    },
-                  ),
-            const SizedBox(height: 35),
-          ],
-        ),
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  historyItems.isEmpty
+                      ? _buildEmptyState()
+                      : ScanHistoryList(
+                          items: historyItems, // ส่ง object LeafRecord ไป
+                          limit: null,
+                          showDeleteIcon: true,
+                          onDelete: (index) => _deleteItem(index),
+                          onTap: (index) {
+                            // การส่งค่าไปหน้า Detail สามารถส่ง record object ไปได้เลย
+                            // เช่น Navigator.push(context, MaterialPageRoute(builder: (_) => DetailPage(record: historyItems[index])));
+                          },
+                        ),
+                  const SizedBox(height: 35),
+                ],
+              ),
+            ),
     );
   }
 
@@ -96,7 +110,15 @@ class _MainHistoryState extends State<MainHistory> {
     );
   }
 
-  void _deleteItem(int index) {
+  Future<void> _deleteItem(int index) async {
+    final recordToDelete = historyItems[index];
+
+    // 1. ลบจาก Database
+    if (recordToDelete.recordId != null) {
+      await DatabaseHelper.instance.deleteRecord(recordToDelete.recordId!);
+    }
+
+    // 2. อัปเดต UI
     setState(() {
       historyItems.removeAt(index);
     });
@@ -109,6 +131,7 @@ class _MainHistoryState extends State<MainHistory> {
     );
   }
 
+  // แก้ไขฟังก์ชันลบทั้งหมด
   void _confirmDeleteAll() {
     showDialog(
       context: context,
@@ -121,7 +144,11 @@ class _MainHistoryState extends State<MainHistory> {
             child: const Text("ยกเลิก"),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              // 1. สั่งลบทั้งหมดใน DB
+              await DatabaseHelper.instance.deleteAllRecords();
+
+              // 2. อัปเดต UI
               setState(() {
                 historyItems.clear();
               });

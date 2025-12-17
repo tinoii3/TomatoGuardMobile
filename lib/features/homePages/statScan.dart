@@ -2,9 +2,48 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:tomato_guard_mobile/models/statCard.dart';
 import 'package:tomato_guard_mobile/shared/theme/colors.dart';
+import 'package:tomato_guard_mobile/services/databaseHelper.dart'; // อย่าลืม import
 
-class StatScan extends StatelessWidget {
+class StatScan extends StatefulWidget {
   const StatScan({super.key});
+
+  @override
+  State<StatScan> createState() => _StatScanState();
+}
+
+class _StatScanState extends State<StatScan> {
+  // สร้างตัวแปร State เพื่อเก็บค่า
+  int total = 0;
+  int healthy = 0;
+  int diseased = 0;
+  String mostCommon = "-";
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats(); // ดึงข้อมูลตอนเริ่ม
+  }
+
+  // ฟังก์ชันดึงข้อมูลจาก DB
+  Future<void> _loadStats() async {
+    final stats = await DatabaseHelper.instance.getStats();
+
+    if (mounted) {
+      setState(() {
+        total = stats['total'];
+        healthy = stats['healthy'];
+        diseased = stats['diseased'];
+        mostCommon = stats['mostCommon'];
+        isLoading = false;
+      });
+    }
+  }
+
+  // ฟังก์ชันเพื่อให้ Parent Widget สั่งรีเฟรชข้อมูลได้ (ถ้าต้องการ)
+  void refresh() {
+    _loadStats();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,54 +52,72 @@ class StatScan extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "สถิติการสแกน",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.7,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StatCard(
-                title: "สแกนทั้งหมด",
-                value: "0",
-                icon: LucideIcons.chartColumn,
-                themeColor: AppColors.primary,
-                isOutlined: true,
+              const Text(
+                "สถิติการสแกน",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-              StatCard(
-                title: "ใบสุขภาพดี",
-                value: "0",
-                icon: LucideIcons.circleCheckBig,
-                themeColor: AppColors.success,
-                backgroundColor: AppColors.success.withOpacity(0.1),
-              ),
-              StatCard(
-                title: "พบโรค",
-                value: "0",
-                icon: LucideIcons.triangleAlert,
-                themeColor: AppColors.warning,
-                backgroundColor: AppColors.warning.withOpacity(0.1),
-              ),
-              StatCard(
-                title: "โรคที่พบบ่อย",
-                value: "-",
-                icon: LucideIcons.leaf,
-                themeColor: AppColors.destructive,
-                backgroundColor: AppColors.destructive.withOpacity(0.1),
+              // ปุ่ม Refresh เล็กๆ เผื่ออยากกดอัปเดตเอง
+              IconButton(
+                icon: const Icon(
+                  LucideIcons.refreshCw,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+                onPressed: _loadStats,
               ),
             ],
           ),
+          const SizedBox(height: 16),
+
+          if (isLoading)
+            const Center(child: CircularProgressIndicator())
+          else
+            GridView.count(
+              crossAxisCount: 1,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 5,
+              children: [
+                StatCard(
+                  title: "สแกนทั้งหมด",
+                  value: "$total", // ใส่ตัวแปร
+                  icon: LucideIcons.chartColumn,
+                  themeColor: AppColors.primary,
+                  isOutlined: true,
+                ),
+                StatCard(
+                  title: "ใบสุขภาพดี",
+                  value: "$healthy", // ใส่ตัวแปร
+                  icon: LucideIcons.circleCheckBig,
+                  themeColor: AppColors.success,
+                  backgroundColor: AppColors.success.withOpacity(0.1),
+                ),
+                StatCard(
+                  title: "พบโรค",
+                  value: "$diseased", // ใส่ตัวแปร
+                  icon: LucideIcons.triangleAlert,
+                  themeColor: AppColors.warning,
+                  backgroundColor: AppColors.warning.withOpacity(0.1),
+                ),
+                StatCard(
+                  title: "โรคที่พบบ่อย",
+                  value: mostCommon, // ใส่ตัวแปร
+                  icon: LucideIcons.leaf,
+                  themeColor: AppColors.destructive,
+                  backgroundColor: AppColors.destructive.withOpacity(0.1),
+                ),
+              ],
+            ),
         ],
       ),
     );

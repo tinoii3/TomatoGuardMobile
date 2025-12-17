@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:tomato_guard_mobile/models/leafRecord.dart';
+import 'package:tomato_guard_mobile/services/databaseHelper.dart';
 import 'package:tomato_guard_mobile/shared/widget/scanHistoryList.dart';
 
 class CurrentScan extends StatefulWidget {
@@ -11,12 +13,34 @@ class CurrentScan extends StatefulWidget {
 }
 
 class _CurrentScanState extends State<CurrentScan> {
-  final List<String> scanHistory = [
-    "Tomato Leaf 001",
-    "Tomato Leaf 002",
-    "Tomato Leaf 003",
-    "Tomato Leaf 004",
-  ];
+  List<LeafRecord> recentScans = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecentScans();
+  }
+
+  // 4. ฟังก์ชันดึงข้อมูลจาก DB
+  Future<void> _fetchRecentScans() async {
+    final data = await DatabaseHelper.instance.getAllRecords();
+
+    // DB เรา sort DESC (ล่าสุดก่อน) อยู่แล้ว เอามาใช้ได้เลย
+    // แต่ถ้าอยากเอาชัวร์ว่าเอามาแค่ 3 ตัวล่าสุดจริงๆ เพื่อความเร็ว ก็ทำได้ (แต่ตอนนี้เอามาหมดแล้วตัดใน View เอา ง่ายกว่า)
+
+    if (mounted) {
+      setState(() {
+        recentScans = data;
+        isLoading = false;
+      });
+    }
+  }
+
+  // ฟังก์ชันเพื่อให้ Parent Widget เรียกใช้ได้ (กรณีสแกนเสร็จแล้วกลับมาหน้าแรก อยากให้รีเฟรช)
+  void refreshData() {
+    _fetchRecentScans();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +60,7 @@ class _CurrentScanState extends State<CurrentScan> {
                   color: Colors.black,
                 ),
               ),
-              if (scanHistory.isNotEmpty)
+              if (recentScans.isNotEmpty)
                 TextButton(
                   onPressed: widget.onSeeAll,
                   child: const Text(
@@ -47,16 +71,20 @@ class _CurrentScanState extends State<CurrentScan> {
             ],
           ),
           const SizedBox(height: 10),
-          scanHistory.isEmpty
-              ? _buildEmptyState()
-              : ScanHistoryList(
-                  items: scanHistory,
-                  limit: 3,
-                  showDeleteIcon: false,
-                  onTap: (index) {
-                    print("กดที่รายการ: ${scanHistory[index]}");
-                  },
-                ),
+          if (isLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (recentScans.isEmpty)
+            _buildEmptyState()
+          else
+            ScanHistoryList(
+              items: recentScans, // ส่ง List<LeafRecord>
+              limit: 3, // จำกัดแค่ 3 รายการล่าสุด
+              showDeleteIcon: false, // หน้าแรกไม่ควรมีปุ่มลบ (UX)
+              onTap: (index) {
+                // TODO: นำทางไปหน้า Detail โดยส่ง recentScans[index] ไป
+                print("กดที่รายการ: ${recentScans[index].diseaseName}");
+              },
+            ),
         ],
       ),
     );

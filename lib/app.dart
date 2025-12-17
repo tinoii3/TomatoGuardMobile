@@ -44,7 +44,7 @@ class _MainAppState extends State<MainApp> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.white.withOpacity(0.95),
-        body: IndexedStack(index: _currentIndex, children: _pages),
+        body: _pages[_currentIndex],
 
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
