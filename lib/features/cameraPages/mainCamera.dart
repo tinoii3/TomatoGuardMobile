@@ -58,9 +58,6 @@ class _MainCameraState extends State<MainCamera> {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        maxWidth: 1000,
-        maxHeight: 1000,
-        imageQuality: 100,
         preferredCameraDevice: CameraDevice.rear,
       );
 
