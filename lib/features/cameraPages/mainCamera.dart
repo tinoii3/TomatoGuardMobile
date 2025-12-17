@@ -37,13 +37,21 @@ class _MainCameraState extends State<MainCamera> {
   void initState() {
     super.initState();
     _classifier.loadModel();
-    DatabaseHelper.instance.debugCheckDiseases();
+    // DatabaseHelper.instance.debugCheckDiseases();
   }
 
   @override
   void dispose() {
     _classifier.close();
     super.dispose();
+  }
+
+  void _resetToInitialState() {
+    setState(() {
+      _selectedImage = null;
+      _isAnalyzing = false;
+      _lastImageSource = null;
+    });
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -68,9 +76,7 @@ class _MainCameraState extends State<MainCamera> {
   }
 
   void _clearImage() {
-    setState(() {
-      _selectedImage = null;
-    });
+    _resetToInitialState();
   }
 
   Future<void> _runAnalysis() async {
@@ -144,12 +150,14 @@ class _MainCameraState extends State<MainCamera> {
       await DatabaseHelper.instance.insertRecord(newRecord);
 
       Navigator.of(context).pop();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("บันทึกข้อมูลเรียบร้อยแล้ว"),
           backgroundColor: Colors.green,
         ),
       );
+      _resetToInitialState();
     } catch (e) {
       print("Save Error: $e");
       ScaffoldMessenger.of(
@@ -166,6 +174,7 @@ class _MainCameraState extends State<MainCamera> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
@@ -206,7 +215,10 @@ class _MainCameraState extends State<MainCamera> {
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              _resetToInitialState();
+            },
             child: const Text("ยกเลิก", style: TextStyle(color: Colors.blue)),
           ),
           TextButton(
