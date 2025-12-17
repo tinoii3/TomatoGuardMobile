@@ -21,6 +21,10 @@ class ScanHistoryList extends StatelessWidget {
     this.onDelete,
   });
 
+  String _formatDiseaseName(String rawName) {
+    return rawName.replaceAll('Tomato_', '').replaceAll('_', ' ');
+  }
+
   String _formatDate(DateTime date) {
     return "${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
@@ -39,6 +43,9 @@ class ScanHistoryList extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final record = items[index];
+        final String displayName = _formatDiseaseName(
+          record.diseaseName ?? "Unknown",
+        );
 
         return GestureDetector(
           onTap: () => onTap?.call(index),
@@ -61,7 +68,7 @@ class ScanHistoryList extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     image: DecorationImage(
                       image: FileImage(File(record.imagePath)),
@@ -75,7 +82,7 @@ class ScanHistoryList extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        record.diseaseName ?? "Unknown",
+                        displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

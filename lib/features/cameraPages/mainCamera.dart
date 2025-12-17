@@ -29,6 +29,10 @@ class _MainCameraState extends State<MainCamera> {
   final DiseaseClassifier _classifier = DiseaseClassifier();
   bool _isAnalyzing = false;
 
+  String _formatDiseaseName(String rawName) {
+    return rawName.replaceAll('Tomato_', '').replaceAll('_', ' ');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -158,6 +162,8 @@ class _MainCameraState extends State<MainCamera> {
     String label = result['label'];
     double confidence = result['confidence'] * 100;
 
+    final String displayName = _formatDiseaseName(label);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -176,7 +182,7 @@ class _MainCameraState extends State<MainCamera> {
             Text("โรคที่ตรวจพบ:", style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 4),
             Text(
-              label,
+              displayName,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

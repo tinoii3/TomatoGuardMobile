@@ -22,12 +22,8 @@ class _CurrentScanState extends State<CurrentScan> {
     _fetchRecentScans();
   }
 
-  // 4. ฟังก์ชันดึงข้อมูลจาก DB
   Future<void> _fetchRecentScans() async {
     final data = await DatabaseHelper.instance.getAllRecords();
-
-    // DB เรา sort DESC (ล่าสุดก่อน) อยู่แล้ว เอามาใช้ได้เลย
-    // แต่ถ้าอยากเอาชัวร์ว่าเอามาแค่ 3 ตัวล่าสุดจริงๆ เพื่อความเร็ว ก็ทำได้ (แต่ตอนนี้เอามาหมดแล้วตัดใน View เอา ง่ายกว่า)
 
     if (mounted) {
       setState(() {
@@ -37,7 +33,6 @@ class _CurrentScanState extends State<CurrentScan> {
     }
   }
 
-  // ฟังก์ชันเพื่อให้ Parent Widget เรียกใช้ได้ (กรณีสแกนเสร็จแล้วกลับมาหน้าแรก อยากให้รีเฟรช)
   void refreshData() {
     _fetchRecentScans();
   }
@@ -77,9 +72,9 @@ class _CurrentScanState extends State<CurrentScan> {
             _buildEmptyState()
           else
             ScanHistoryList(
-              items: recentScans, // ส่ง List<LeafRecord>
-              limit: 3, // จำกัดแค่ 3 รายการล่าสุด
-              showDeleteIcon: false, // หน้าแรกไม่ควรมีปุ่มลบ (UX)
+              items: recentScans,
+              limit: 3,
+              showDeleteIcon: false,
               onTap: (index) {
                 // TODO: นำทางไปหน้า Detail โดยส่ง recentScans[index] ไป
                 print("กดที่รายการ: ${recentScans[index].diseaseName}");

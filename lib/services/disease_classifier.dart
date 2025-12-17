@@ -49,7 +49,6 @@ class DiseaseClassifier {
         inputSize,
         (y) => List.generate(inputSize, (x) {
           var pixel = resizedImage.getPixel(x, y);
-          // image package เวอร์ชั่นใหม่ pixel.r, pixel.g, pixel.b คือ int 0-255
           return [pixel.r / 255.0, pixel.g / 255.0, pixel.b / 255.0];
         }),
       ),

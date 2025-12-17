@@ -12,7 +12,6 @@ class StatScan extends StatefulWidget {
 }
 
 class _StatScanState extends State<StatScan> {
-  // สร้างตัวแปร State เพื่อเก็บค่า
   int total = 0;
   int healthy = 0;
   int diseased = 0;
@@ -22,10 +21,9 @@ class _StatScanState extends State<StatScan> {
   @override
   void initState() {
     super.initState();
-    _loadStats(); // ดึงข้อมูลตอนเริ่ม
+    _loadStats();
   }
 
-  // ฟังก์ชันดึงข้อมูลจาก DB
   Future<void> _loadStats() async {
     final stats = await DatabaseHelper.instance.getStats();
 
@@ -40,7 +38,6 @@ class _StatScanState extends State<StatScan> {
     }
   }
 
-  // ฟังก์ชันเพื่อให้ Parent Widget สั่งรีเฟรชข้อมูลได้ (ถ้าต้องการ)
   void refresh() {
     _loadStats();
   }
@@ -63,15 +60,14 @@ class _StatScanState extends State<StatScan> {
                   color: Colors.black,
                 ),
               ),
-              // ปุ่ม Refresh เล็กๆ เผื่ออยากกดอัปเดตเอง
-              IconButton(
-                icon: const Icon(
-                  LucideIcons.refreshCw,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-                onPressed: _loadStats,
-              ),
+              // IconButton(
+              //   icon: const Icon(
+              //     LucideIcons.refreshCw,
+              //     size: 16,
+              //     color: Colors.grey,
+              //   ),
+              //   onPressed: _loadStats,
+              // ),
             ],
           ),
           const SizedBox(height: 16),
@@ -86,32 +82,32 @@ class _StatScanState extends State<StatScan> {
               padding: EdgeInsets.zero,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 5,
+              childAspectRatio: 4.8,
               children: [
                 StatCard(
                   title: "สแกนทั้งหมด",
-                  value: "$total", // ใส่ตัวแปร
+                  value: "$total",
                   icon: LucideIcons.chartColumn,
                   themeColor: AppColors.primary,
                   isOutlined: true,
                 ),
                 StatCard(
                   title: "ใบสุขภาพดี",
-                  value: "$healthy", // ใส่ตัวแปร
+                  value: "$healthy",
                   icon: LucideIcons.circleCheckBig,
                   themeColor: AppColors.success,
                   backgroundColor: AppColors.success.withOpacity(0.1),
                 ),
                 StatCard(
                   title: "พบโรค",
-                  value: "$diseased", // ใส่ตัวแปร
+                  value: "$diseased",
                   icon: LucideIcons.triangleAlert,
                   themeColor: AppColors.warning,
                   backgroundColor: AppColors.warning.withOpacity(0.1),
                 ),
                 StatCard(
                   title: "โรคที่พบบ่อย",
-                  value: mostCommon, // ใส่ตัวแปร
+                  value: mostCommon,
                   icon: LucideIcons.leaf,
                   themeColor: AppColors.destructive,
                   backgroundColor: AppColors.destructive.withOpacity(0.1),

@@ -66,7 +66,7 @@ class _StatCardState extends State<StatCard> {
               children: [
                 Text(
                   widget.title,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -74,7 +74,7 @@ class _StatCardState extends State<StatCard> {
                 Text(
                   widget.value,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),

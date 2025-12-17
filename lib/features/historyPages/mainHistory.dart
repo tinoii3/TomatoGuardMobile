@@ -20,10 +20,9 @@ class _MainHistoryState extends State<MainHistory> {
   @override
   void initState() {
     super.initState();
-    _loadHistory(); // เรียกโหลดข้อมูลเมื่อเปิดหน้า
+    _loadHistory();
   }
 
-  // ฟังก์ชันดึงข้อมูลจาก DB
   Future<void> _loadHistory() async {
     setState(() => isLoading = true);
     final data = await DatabaseHelper.instance.getAllRecords();
@@ -65,6 +64,7 @@ class _MainHistoryState extends State<MainHistory> {
               onPressed: () => _confirmDeleteAll(),
               tooltip: 'ลบประวัติทั้งหมด',
             ),
+          SizedBox(width: 15),
         ],
       ),
       backgroundColor: Colors.grey[200],
@@ -77,7 +77,7 @@ class _MainHistoryState extends State<MainHistory> {
                   historyItems.isEmpty
                       ? _buildEmptyState()
                       : ScanHistoryList(
-                          items: historyItems, // ส่ง object LeafRecord ไป
+                          items: historyItems,
                           limit: null,
                           showDeleteIcon: true,
                           onDelete: (index) => _deleteItem(index),
@@ -113,12 +113,10 @@ class _MainHistoryState extends State<MainHistory> {
   Future<void> _deleteItem(int index) async {
     final recordToDelete = historyItems[index];
 
-    // 1. ลบจาก Database
     if (recordToDelete.recordId != null) {
       await DatabaseHelper.instance.deleteRecord(recordToDelete.recordId!);
     }
 
-    // 2. อัปเดต UI
     setState(() {
       historyItems.removeAt(index);
     });
@@ -131,30 +129,62 @@ class _MainHistoryState extends State<MainHistory> {
     );
   }
 
-  // แก้ไขฟังก์ชันลบทั้งหมด
   void _confirmDeleteAll() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("ยืนยันการลบ"),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text(
+          "ลบประวัติทั้งหมด",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: const Text("คุณต้องการลบประวัติทั้งหมดใช่หรือไม่?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("ยกเลิก"),
-          ),
-          TextButton(
-            onPressed: () async {
-              // 1. สั่งลบทั้งหมดใน DB
-              await DatabaseHelper.instance.deleteAllRecords();
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
 
-              // 2. อัปเดต UI
-              setState(() {
-                historyItems.clear();
-              });
-              Navigator.pop(ctx);
-            },
-            child: const Text("ลบทั้งหมด", style: TextStyle(color: Colors.red)),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text("ยกเลิก"),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await DatabaseHelper.instance.deleteAllRecords();
+                    setState(() {
+                      historyItems.clear();
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text("ลบทั้งหมด"),
+                ),
+              ),
+            ],
           ),
         ],
       ),

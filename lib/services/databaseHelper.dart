@@ -76,11 +76,10 @@ class DatabaseHelper {
     return await db.insert('leaf_records', record.toMap());
   }
 
-  // ดึงข้อมูลทั้งหมดพร้อม Join ชื่อโรค (Read)
+  // ดึงข้อมูลทั้งหมดพร้อม Join ชื่อโรค
   Future<List<LeafRecord>> getAllRecords() async {
     final db = await instance.database;
 
-    // SQL Join เพื่อเอา disease_name มาด้วย ตาม Class Diagram
     final result = await db.rawQuery('''
       SELECT r.*, d.disease_name
       FROM leaf_records r
@@ -113,10 +112,8 @@ class DatabaseHelper {
 
     final diseased = total - healthy;
 
-    // 3. หาโรคที่พบบ่อยที่สุด (ไม่นับ Healthy)
     String mostCommon = "-";
 
-    // Query: นับจำนวนโรคแต่ละชนิด (ที่ healthy=0) เรียงจากมากไปน้อย แล้วเอาตัวแรกสุด
     final mostCommonResult = await db.rawQuery('''
         SELECT d.disease_name, COUNT(r.record_id) as count
         FROM leaf_records r
@@ -129,7 +126,6 @@ class DatabaseHelper {
 
     if (mostCommonResult.isNotEmpty) {
       mostCommon = mostCommonResult.first['disease_name'] as String;
-      // ตัดคำว่า "Tomato_" ออกเพื่อให้ชื่อสั้นลง (Optional)
       mostCommon = mostCommon.replaceAll('Tomato_', '').replaceAll('_', ' ');
     }
 
@@ -141,7 +137,6 @@ class DatabaseHelper {
     };
   }
 
-  // Helper: หา disease_id จากชื่อ (ใช้ตอนบันทึก)
   Future<int?> getDiseaseIdByName(String name) async {
     final db = await instance.database;
     final result = await db.query(
@@ -156,8 +151,6 @@ class DatabaseHelper {
     }
     return null;
   }
-
-  // ใน class DatabaseHelper เพิ่ม method เหล่านี้เข้าไปครับ
 
   // ลบทีละรายการด้วย ID
   Future<int> deleteRecord(int id) async {
