@@ -91,6 +91,7 @@ class _MainCameraState extends State<MainCamera> {
 
     if (result != null) {
       _showResultDialog(result);
+      //_showDebugDialog(result);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("เกิดข้อผิดพลาดในการวิเคราะห์")),
@@ -162,6 +163,61 @@ class _MainCameraState extends State<MainCamera> {
       ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
     }
   }
+
+  // สร้าง Dialog ใหม่สำหรับดูรูป Preprocess โดยเฉพาะ
+    void _showDebugDialog(Map<String, dynamic> result) {
+      String debugPath = result['debugImagePath'];
+      String label = result['label'];
+      double confidence = result['confidence'] * 100;
+
+      File debugImage = File(debugPath);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("🔍 เช็คสิ่งที่ AI เห็น"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("นี่คือรูปที่ถูกส่งเข้าโมเดล (224x224):"),
+              const SizedBox(height: 10),
+
+              // แสดงรูป Debug
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red, width: 2), // กรอบแดงเพื่อให้เห็นขอบชัด
+                ),
+                child: Image.file(
+                  debugImage,
+                  width: 224, // Fix ขนาดให้เท่า Input จริง
+                  height: 224,
+                  fit: BoxFit.contain,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+              const Text(
+                "สิ่งที่ต้องเช็ค:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Text("1. ภาพเบี้ยว/บีบ หรือไม่? (Squash)"),
+              const Text("2. ภาพกลับหัว หรือตะแคงไหม?"),
+              const Text("3. สีเพี้ยนจากต้นฉบับไหม?"),
+
+              const Divider(),
+              Text("ผลลัพธ์: $label"),
+              Text("ความมั่นใจ: ${confidence.toStringAsFixed(2)}%"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("ปิด"),
+            ),
+          ],
+        ),
+      );
+    }
 
   void _showResultDialog(Map<String, dynamic> result) {
     String label = result['label'];
