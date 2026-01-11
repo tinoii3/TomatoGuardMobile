@@ -9,7 +9,7 @@ class HomePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 410, 
+      height: 410,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
@@ -86,7 +86,7 @@ class HomePageHeader extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 0, 
+            bottom: 0,
             child: GestureDetector(
               onTap: onScanPressed,
               child: Container(
