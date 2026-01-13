@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:tomato_guard_mobile/models/leafRecord.dart';
 import 'package:tomato_guard_mobile/services/databaseHelper.dart';
+import 'package:tomato_guard_mobile/shared/theme/colors.dart';
 import 'package:tomato_guard_mobile/shared/widget/scanHistoryList.dart';
 
 class MainHistory extends StatefulWidget {
@@ -15,7 +16,20 @@ class MainHistory extends StatefulWidget {
 
 class _MainHistoryState extends State<MainHistory> {
   List<LeafRecord> historyItems = [];
+  List<LeafRecord> _allRecords = [];
+
   bool isLoading = true;
+  String _selectedFilter = 'All';
+
+  final List<String> _filterOptions = [
+    'All',
+    'Bacterial Spot',
+    'Early Blight',
+    'Late Blight',
+    'Leaf Mold',
+    'Septoria Spot',
+    'Healthy',
+  ];
 
   @override
   void initState() {
@@ -27,8 +41,51 @@ class _MainHistoryState extends State<MainHistory> {
     setState(() => isLoading = true);
     final data = await DatabaseHelper.instance.getAllRecords();
     setState(() {
-      historyItems = data;
+      _allRecords = data;
+      _applyFilter();
       isLoading = false;
+    });
+  }
+
+  void _applyFilter() {
+    if (_selectedFilter == 'All') {
+      historyItems = List.from(_allRecords);
+    } else {
+      String targetDbName = "";
+      switch (_selectedFilter) {
+        case 'Bacterial Spot':
+          targetDbName = 'Tomato_Bacterial_spot';
+          break;
+        case 'Early Blight':
+          targetDbName = 'Tomato_Early_blight';
+          break;
+        case 'Late Blight':
+          targetDbName = 'Tomato_Late_blight';
+          break;
+        case 'Leaf Mold':
+          targetDbName = 'Tomato_Leaf_Mold';
+          break;
+        case 'Septoria Spot':
+          targetDbName = 'Tomato_Septoria_leaf_spot';
+          break;
+        case 'Healthy':
+          targetDbName = 'Tomato_healthy';
+          break;
+      }
+
+      historyItems = _allRecords.where((record) {
+        return record.diseaseName == targetDbName;
+      }).toList();
+    }
+  }
+
+  void _onFilterSelected(String filter) {
+    // ถ้าเลือก Filter เดิม ไม่ต้อง Rebuild ให้เปลืองแรง
+    if (_selectedFilter == filter) return;
+
+    setState(() {
+      _selectedFilter = filter;
+      _applyFilter();
     });
   }
 
@@ -58,37 +115,88 @@ class _MainHistoryState extends State<MainHistory> {
         titleSpacing: 10,
         elevation: 0,
         actions: [
-          if (historyItems.isNotEmpty)
+          if (_allRecords.isNotEmpty)
             IconButton(
               icon: const Icon(LucideIcons.trash2, color: Colors.red),
               onPressed: () => _confirmDeleteAll(),
               tooltip: 'ลบประวัติทั้งหมด',
             ),
-          SizedBox(width: 15),
+          const SizedBox(width: 15),
         ],
       ),
       backgroundColor: Colors.grey[200],
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  historyItems.isEmpty
+          : Column(
+              children: [
+                // --- ส่วน Filter (Header) ---
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: _filterOptions.map((filter) {
+                        final isSelected = _selectedFilter == filter;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: GestureDetector(
+                            onTap: () => _onFilterSelected(filter),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: isSelected
+                                    ? AppColors.gradientPrimary
+                                    : null,
+                                color: isSelected ? null : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              child: Text(
+                                filter,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey[700],
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+
+                // --- ส่วนรายการ (Body) ---
+                Expanded(
+                  child: historyItems.isEmpty
                       ? _buildEmptyState()
                       : ScanHistoryList(
+                          // เรียกใช้ Widget ที่ปรับจูนแล้วด้านล่าง
                           items: historyItems,
-                          limit: null,
+                          // ไม่ต้องส่ง limit ก็ได้ถ้าไม่ได้ใช้
                           showDeleteIcon: true,
                           onDelete: (index) => _deleteItem(index),
                           onTap: (index) {
-                            // การส่งค่าไปหน้า Detail สามารถส่ง record object ไปได้เลย
-                            // เช่น Navigator.push(context, MaterialPageRoute(builder: (_) => DetailPage(record: historyItems[index])));
+                            // Handle tap
                           },
                         ),
-                  const SizedBox(height: 35),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }
@@ -98,11 +206,12 @@ class _MainHistoryState extends State<MainHistory> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 100),
           Icon(LucideIcons.history, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            "ไม่มีประวัติ",
+            _selectedFilter == 'All'
+                ? "ไม่มีประวัติ"
+                : "ไม่พบข้อมูล $_selectedFilter",
             style: TextStyle(fontSize: 18, color: Colors.grey[500]),
           ),
         ],
@@ -112,15 +221,13 @@ class _MainHistoryState extends State<MainHistory> {
 
   Future<void> _deleteItem(int index) async {
     final recordToDelete = historyItems[index];
-
     if (recordToDelete.recordId != null) {
       await DatabaseHelper.instance.deleteRecord(recordToDelete.recordId!);
     }
-
     setState(() {
       historyItems.removeAt(index);
+      _allRecords.removeWhere((r) => r.recordId == recordToDelete.recordId);
     });
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("ลบรายการเรียบร้อย"),
@@ -141,7 +248,6 @@ class _MainHistoryState extends State<MainHistory> {
         ),
         content: const Text("คุณต้องการลบประวัติทั้งหมดใช่หรือไม่?"),
         actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-
         actions: [
           Row(
             children: [
@@ -161,13 +267,13 @@ class _MainHistoryState extends State<MainHistory> {
                   child: const Text("ยกเลิก"),
                 ),
               ),
-
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () async {
                     await DatabaseHelper.instance.deleteAllRecords();
                     setState(() {
+                      _allRecords.clear();
                       historyItems.clear();
                     });
                     Navigator.pop(ctx);
