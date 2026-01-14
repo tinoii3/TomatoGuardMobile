@@ -26,9 +26,7 @@ class DiseaseClassifier {
       print('✅ Labels loaded: $_labels');
 
       var inputTensor = _interpreter!.getInputTensor(0);
-      print(
-        "🔍 Model Input Type: ${inputTensor.type}",
-      );
+      print("🔍 Model Input Type: ${inputTensor.type}");
       print("🔍 Model Input Shape: ${inputTensor.shape}");
     } catch (e) {
       print('❌ Failed to load model: $e');
@@ -53,12 +51,10 @@ class DiseaseClassifier {
       image,
       width: inputSize,
       height: inputSize,
-      interpolation:
-          img.Interpolation.average,
+      interpolation: img.Interpolation.average,
     );
 
-    final directory =
-        await getApplicationDocumentsDirectory();
+    final directory = await getApplicationDocumentsDirectory();
     final debugFile = File('${directory.path}/debug_input.jpg');
     await debugFile.writeAsBytes(img.encodeJpg(resizedImage));
     print("📸 บันทึกรูป Input ของโมเดลไว้ที่: ${debugFile.path}");
@@ -69,16 +65,14 @@ class DiseaseClassifier {
     for (var y = 0; y < inputSize; y++) {
       for (var x = 0; x < inputSize; x++) {
         var pixel = resizedImage.getPixel(x, y);
+        
+        // inputBytes[pixelIndex++] = pixel.r / 255.0;
+        // inputBytes[pixelIndex++] = pixel.g / 255.0;
+        // inputBytes[pixelIndex++] = pixel.b / 255.0;
 
-        // ❌ แบบเดิม: 0 ถึง 1 (สำหรับ Rescale 1./255)
-                // inputBytes[pixelIndex++] = pixel.r / 255.0;
-                // inputBytes[pixelIndex++] = pixel.g / 255.0;
-                // inputBytes[pixelIndex++] = pixel.b / 255.0;
-
-                // ✅ แบบใหม่: -1 ถึง 1 (สำหรับ MobileNetV2 preprocess_input)
-                inputBytes[pixelIndex++] = (pixel.r - 127.5) / 127.5;
-                inputBytes[pixelIndex++] = (pixel.g - 127.5) / 127.5;
-                inputBytes[pixelIndex++] = (pixel.b - 127.5) / 127.5;
+        inputBytes[pixelIndex++] = (pixel.r - 127.5) / 127.5;
+        inputBytes[pixelIndex++] = (pixel.g - 127.5) / 127.5;
+        inputBytes[pixelIndex++] = (pixel.b - 127.5) / 127.5;
       }
     }
 

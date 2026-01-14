@@ -76,7 +76,6 @@ class _CurrentScanState extends State<CurrentScan> {
               limit: 3,
               showDeleteIcon: false,
               onTap: (index) {
-                // TODO: นำทางไปหน้า Detail โดยส่ง recentScans[index] ไป
                 print("กดที่รายการ: ${recentScans[index].diseaseName}");
               },
             ),

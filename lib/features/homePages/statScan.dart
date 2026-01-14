@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:tomato_guard_mobile/models/statCard.dart';
 import 'package:tomato_guard_mobile/shared/theme/colors.dart';
-import 'package:tomato_guard_mobile/services/databaseHelper.dart'; // อย่าลืม import
+import 'package:tomato_guard_mobile/services/databaseHelper.dart';
 
 class StatScan extends StatefulWidget {
   const StatScan({super.key});
@@ -60,14 +60,6 @@ class _StatScanState extends State<StatScan> {
                   color: Colors.black,
                 ),
               ),
-              // IconButton(
-              //   icon: const Icon(
-              //     LucideIcons.refreshCw,
-              //     size: 16,
-              //     color: Colors.grey,
-              //   ),
-              //   onPressed: _loadStats,
-              // ),
             ],
           ),
           const SizedBox(height: 16),

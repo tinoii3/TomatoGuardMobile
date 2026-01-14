@@ -98,7 +98,6 @@ class _MainCameraState extends State<MainCamera> {
     }
   }
 
-  // ฟังก์ชันช่วย Save รูปจาก Cache ไปยัง App Doc Dir
   Future<String> _saveImagePermanently(File sourceFile) async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -110,7 +109,6 @@ class _MainCameraState extends State<MainCamera> {
     return savedImage.path;
   }
 
-  // ฟังก์ชันสำหรับบันทึกข้อมูลลง SQLite
   Future<void> _saveResultToDB(String label, double confidenceScore) async {
     try {
       if (_selectedImage == null) return;
@@ -163,9 +161,68 @@ class _MainCameraState extends State<MainCamera> {
     }
   }
 
+  void _showLowConfidenceDialog(double confidence) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(LucideIcons.triangleAlert, color: Colors.orange),
+            SizedBox(width: 8),
+            Text("ผลการวิเคราะห์ไม่ชัดเจน", style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "ความมั่นใจต่ำ: ${confidence.toStringAsFixed(2)}%",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "ระบบไม่สามารถระบุโรคได้แน่ชัด อาจเกิดจาก:\n"
+              "• ภาพเบลอหรือไม่โฟกัส\n"
+              "• ถ่ายไกลเกินไป\n"
+              "• แสงสว่างไม่เพียงพอ\n"
+              "• สิ่งที่ถ่ายไม่ใช่ใบมะเขือเทศ\n"
+              "• สิ่งที่ถ่ายไม่ใช่โรคใบมะเขือเทศที่กำหนด",
+              style: TextStyle(height: 1.5, color: Colors.black87),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "คำแนะนำ: กรุณาลองถ่ายใหม่อีกครั้งในระยะใกล้และแสงสว่างเพียงพอ",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _resetToInitialState();
+            },
+            child: const Text("ลองใหม่", style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showResultDialog(Map<String, dynamic> result) {
     String label = result['label'];
     double confidence = result['confidence'] * 100;
+
+    if (confidence < 70.0) {
+      _showLowConfidenceDialog(confidence);
+      return;
+    }
 
     final String displayName = _formatDiseaseName(label);
 

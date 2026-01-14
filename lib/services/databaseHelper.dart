@@ -68,15 +68,11 @@ class DatabaseHelper {
     }
   }
 
-  // --- CRUD Operations ---
-
-  // บันทึกข้อมูล (Create)
   Future<int> insertRecord(LeafRecord record) async {
     final db = await instance.database;
     return await db.insert('leaf_records', record.toMap());
   }
 
-  // ดึงข้อมูลทั้งหมดพร้อม Join ชื่อโรค
   Future<List<LeafRecord>> getAllRecords() async {
     final db = await instance.database;
 
@@ -90,18 +86,15 @@ class DatabaseHelper {
     return result.map((json) => LeafRecord.fromMap(json)).toList();
   }
 
-  // ดึงสถิติ (Statistics)
   Future<Map<String, dynamic>> getStats() async {
     final db = await instance.database;
 
-    // 1. นับทั้งหมด
     final total =
         Sqflite.firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM leaf_records'),
         ) ??
         0;
 
-    // 2. นับใบสุขภาพดี
     final healthy =
         Sqflite.firstIntValue(
           await db.rawQuery(
@@ -152,7 +145,6 @@ class DatabaseHelper {
     return null;
   }
 
-  // ลบทีละรายการด้วย ID
   Future<int> deleteRecord(int id) async {
     final db = await instance.database;
     return await db.delete(
@@ -162,13 +154,11 @@ class DatabaseHelper {
     );
   }
 
-  // ลบทั้งหมด
   Future<int> deleteAllRecords() async {
     final db = await instance.database;
     return await db.delete('leaf_records');
   }
 
-  // ฟังก์ชันเช็คว่ามีโรคอะไรใน DB บ้าง
   Future<void> debugCheckDiseases() async {
     final db = await instance.database;
     final result = await db.query('diseases');
