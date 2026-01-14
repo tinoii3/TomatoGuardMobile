@@ -20,13 +20,10 @@ class CameraTips extends StatelessWidget {
           children: [
             const Text(
               "💡เคล็ดลับการถ่ายรูป",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            _buildTipItem("ถ่ายใบที่แสดงอาการชัดเจน"),
+            _buildTipItem("ถ่ายใบมะเขือเทศที่แสดงอาการชัดเจน"),
             const SizedBox(height: 6),
             _buildTipItem("ให้แสงสว่างเพียงพอ"),
             const SizedBox(height: 6),
