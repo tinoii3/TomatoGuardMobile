@@ -14,7 +14,7 @@ class AppColors {
   static final success = hsl(145, 65, 40);
   static final backgroundSecondary = Colors.white.withOpacity(0.95);
 
-  // --- Gradients ---
+  // -- Gradients --
   static final gradientPrimary = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

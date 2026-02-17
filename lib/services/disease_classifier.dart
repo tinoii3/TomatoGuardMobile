@@ -65,10 +65,6 @@ class DiseaseClassifier {
     for (var y = 0; y < inputSize; y++) {
       for (var x = 0; x < inputSize; x++) {
         var pixel = resizedImage.getPixel(x, y);
-        
-        // inputBytes[pixelIndex++] = pixel.r / 255.0;
-        // inputBytes[pixelIndex++] = pixel.g / 255.0;
-        // inputBytes[pixelIndex++] = pixel.b / 255.0;
 
         inputBytes[pixelIndex++] = (pixel.r - 127.5) / 127.5;
         inputBytes[pixelIndex++] = (pixel.g - 127.5) / 127.5;
@@ -105,11 +101,21 @@ class DiseaseClassifier {
       }
     }
 
-    List<double> gg = List<double>.from(output[0]);
-
     print("🔍 Raw Confidence Scores:");
-    for (int i = 0; i < gg.length; i++) {
-      print("  Index $i: ${(gg[i] * 100).toStringAsFixed(2)}%");
+    for (int i = 0; i < result.length; i++) {
+      String label = (i < _labels!.length) ? _labels![i] : "Index $i";
+      print("  👉 $label: ${(result[i] * 100).toStringAsFixed(2)}%");
+    }
+
+    String predictedLabel = _labels![maxIndex];
+    if (predictedLabel == 'Unknown' || maxScore < 0.70) {
+      print("⚠️ ตรวจพบ Unknown หรือ ความมั่นใจต่ำ ($maxScore)");
+      return {
+        'label': 'Unknown',
+        'confidence': maxScore,
+        'index': -1,
+        'debugImagePath': debugFile.path,
+      };
     }
 
     return {

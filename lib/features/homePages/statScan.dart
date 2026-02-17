@@ -67,45 +67,58 @@ class _StatScanState extends State<StatScan> {
           if (isLoading)
             const Center(child: CircularProgressIndicator())
           else
-            GridView.count(
-              crossAxisCount: 1,
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 4.8,
-              children: [
-                StatCard(
-                  title: "สแกนทั้งหมด",
-                  value: "$total",
-                  icon: LucideIcons.chartColumn,
-                  themeColor: AppColors.primary,
-                  isOutlined: true,
-                ),
-                StatCard(
-                  title: "ใบสุขภาพดี",
-                  value: "$healthy",
-                  icon: LucideIcons.circleCheckBig,
-                  themeColor: AppColors.success,
-                  backgroundColor: AppColors.success.withOpacity(0.1),
-                ),
-                StatCard(
-                  title: "พบโรค",
-                  value: "$diseased",
-                  icon: LucideIcons.triangleAlert,
-                  themeColor: AppColors.warning,
-                  backgroundColor: AppColors.warning.withOpacity(0.1),
-                ),
-                StatCard(
-                  title: "โรคที่พบบ่อย",
-                  value: mostCommon,
-                  icon: LucideIcons.leaf,
-                  themeColor: AppColors.destructive,
-                  backgroundColor: AppColors.destructive.withOpacity(0.1),
-                ),
-              ],
-            ),
+              itemCount: 4,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                if (index == 0) return StatCard(title: "สแกนทั้งหมด", value: "$total", icon: LucideIcons.chartColumn, themeColor: AppColors.primary, isOutlined: true);
+                if (index == 1) return StatCard(title: "ใบสุขภาพดี", value: "$healthy", icon: LucideIcons.circleCheckBig, themeColor: AppColors.success, backgroundColor: AppColors.success.withOpacity(0.1));
+                if (index == 2) return StatCard(title: "พบโรค", value: "$diseased", icon: LucideIcons.triangleAlert, themeColor: AppColors.warning, backgroundColor: AppColors.warning.withOpacity(0.1),);
+                if (index == 3) return StatCard(title: "โรคที่พบบ่อย", value: mostCommon, icon: LucideIcons.leaf, themeColor: AppColors.destructive, backgroundColor: AppColors.destructive.withOpacity(0.1),);
+              }
+            // GridView.count(
+            //   crossAxisCount: 1,
+            //   shrinkWrap: true,
+            //   physics: const NeverScrollableScrollPhysics(),
+            //   padding: EdgeInsets.zero,
+            //   crossAxisSpacing: 16,
+            //   mainAxisSpacing: 16,
+            //   childAspectRatio: 4.8,
+            //   children: [
+            //     StatCard(
+            //       title: "สแกนทั้งหมด",
+            //       value: "$total",
+            //       icon: LucideIcons.chartColumn,
+            //       themeColor: AppColors.primary,
+            //       isOutlined: true,
+            //     ),
+            //     StatCard(
+            //       title: "ใบสุขภาพดี",
+            //       value: "$healthy",
+            //       icon: LucideIcons.circleCheckBig,
+            //       themeColor: AppColors.success,
+            //       backgroundColor: AppColors.success.withOpacity(0.1),
+            //     ),
+            //     StatCard(
+            //       title: "พบโรค",
+            //       value: "$diseased",
+            //       icon: LucideIcons.triangleAlert,
+            //       themeColor: AppColors.warning,
+            //       backgroundColor: AppColors.warning.withOpacity(0.1),
+            //     ),
+            //     StatCard(
+            //       title: "โรคที่พบบ่อย",
+            //       value: mostCommon,
+            //       icon: LucideIcons.leaf,
+            //       themeColor: AppColors.destructive,
+            //       backgroundColor: AppColors.destructive.withOpacity(0.1),
+            //     ),
+            //   ],
+            // ),
+          ),
         ],
       ),
     );

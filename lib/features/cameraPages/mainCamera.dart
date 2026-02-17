@@ -110,6 +110,15 @@ class _MainCameraState extends State<MainCamera> {
   }
 
   Future<void> _saveResultToDB(String label, double confidenceScore) async {
+    if (label == 'Unknown') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("ไม่สามารถบันทึกผลลัพธ์ที่ไม่ระบุตัวตนได้"),
+        ),
+      );
+      return;
+    }
+
     try {
       if (_selectedImage == null) return;
 
@@ -161,66 +170,12 @@ class _MainCameraState extends State<MainCamera> {
     }
   }
 
-  void _showLowConfidenceDialog(double confidence) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: const [
-            Icon(LucideIcons.triangleAlert, color: Colors.orange),
-            SizedBox(width: 8),
-            Text("ผลการวิเคราะห์ไม่ชัดเจน", style: TextStyle(fontSize: 18)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "ความมั่นใจต่ำ: ${confidence.toStringAsFixed(2)}%",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "ระบบไม่สามารถระบุโรคได้แน่ชัด อาจเกิดจาก:\n"
-              "• ภาพเบลอหรือไม่โฟกัส\n"
-              "• ถ่ายไกลเกินไป\n"
-              "• แสงสว่างไม่เพียงพอ\n"
-              "• สิ่งที่ถ่ายไม่ใช่ใบมะเขือเทศ\n"
-              "• สิ่งที่ถ่ายไม่ใช่โรคใบมะเขือเทศที่กำหนด",
-              style: TextStyle(height: 1.5, color: Colors.black87),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "คำแนะนำ: กรุณาลองถ่ายใหม่อีกครั้งในระยะใกล้และแสงสว่างเพียงพอ",
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _resetToInitialState();
-            },
-            child: const Text("ลองใหม่", style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showResultDialog(Map<String, dynamic> result) {
     String label = result['label'];
     double confidence = result['confidence'] * 100;
 
-    if (confidence < 70.0) {
-      _showLowConfidenceDialog(confidence);
+    if (label == 'Unknown' || confidence < 70.0) {
+      _showUnknownOrLowConfidenceDialog(label, confidence);
       return;
     }
 
@@ -260,7 +215,7 @@ class _MainCameraState extends State<MainCamera> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: confidence > 80 ? Colors.green : Colors.orange,
+                color: Colors.green,
               ),
             ),
           ],
@@ -280,6 +235,84 @@ class _MainCameraState extends State<MainCamera> {
               await _saveResultToDB(label, confidence);
             },
             child: const Text("บันทึก", style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUnknownOrLowConfidenceDialog(String label, double confidence) {
+    String titleText = "ไม่สามารถระบุได้";
+    String messageText = "ระบบไม่มั่นใจว่าภาพนี้คือโรคใบมะเขือเทศ";
+    IconData icon = LucideIcons.circleAlert;
+    Color iconColor = Colors.orange;
+
+    if (label == 'Unknown') {
+      messageText = "ภาพนี้อาจไม่ใช่ใบมะเขือเทศ หรือเป็นวัตถุอื่น";
+      icon = LucideIcons.ban;
+      iconColor = Colors.red;
+    } else {
+      messageText =
+          "ความมั่นใจต่ำ (${confidence.toStringAsFixed(1)}%)\nภาพอาจไม่ชัด หรือแสงน้อยเกินไป";
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(icon, color: iconColor),
+            const SizedBox(width: 8),
+            Text(titleText, style: const TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              messageText,
+              style: const TextStyle(fontSize: 16, height: 1.5),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "คำแนะนำ:",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              "• ภาพเบลอหรือไม่โฟกัส\n"
+              "• ถ่ายไกลเกินไป\n"
+              "• แสงสว่างไม่เพียงพอ\n"
+              "• สิ่งที่ถ่ายไม่ใช่ใบมะเขือเทศ\n"
+              "• สิ่งที่ถ่ายไม่ใช่โรคใบมะเขือเทศที่กำหนด",
+              style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // แนะนำให้ reset เพื่อให้ user ถ่ายใหม่
+              _clearImage();
+              if (_lastImageSource != null) {
+                // เปิดกล้องให้เลยทันที (User Friendly)
+                _pickImage(_lastImageSource!);
+              }
+            },
+            child: const Text(
+              "ถ่ายใหม่",
+              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _resetToInitialState();
+            },
+            child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),

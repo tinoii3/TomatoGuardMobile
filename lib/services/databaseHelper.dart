@@ -61,10 +61,14 @@ class DatabaseHelper {
       'Tomato_Leaf_Mold',
       'Tomato_Septoria_leaf_spot',
       'Tomato_healthy',
+      'Unknown',
     ];
 
     for (String d in diseases) {
-      await db.insert('diseases', {'disease_name': d});
+      await db.rawInsert(
+        'INSERT OR IGNORE INTO diseases (disease_name) VALUES (?)',
+        [d],
+      );
     }
   }
 
