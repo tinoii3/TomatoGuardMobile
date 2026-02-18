@@ -108,7 +108,7 @@ class DiseaseClassifier {
     }
 
     String predictedLabel = _labels![maxIndex];
-    if (predictedLabel == 'Unknown' || maxScore < 0.70) {
+    if (predictedLabel == 'Unknown') {
       print("⚠️ ตรวจพบ Unknown หรือ ความมั่นใจต่ำ ($maxScore)");
       return {
         'label': 'Unknown',

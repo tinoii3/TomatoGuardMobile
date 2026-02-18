@@ -22,7 +22,22 @@ class ScanHistoryList extends StatelessWidget {
   });
 
   String _formatDiseaseName(String rawName) {
-    return rawName.replaceAll('Tomato_', '').replaceAll('_', ' ');
+    String cleanName = rawName.replaceAll('Tomato_', '').trim();
+
+    String sep = '\n';
+    // String sep = (limit == null) ? '\n' : ' ';
+
+    final Map<String, String> diseaseMap = {
+      'Bacterial_spot': 'โรคใบจุดแบคทีเรีย$sep(Bacterial spot)',
+      'Early_blight': 'โรคใบจุดวง$sep(Early blight)',
+      'Late_blight': 'โรคใบไหม้$sep(Late blight)',
+      'Leaf_Mold': 'โรครากำมะหยี่$sep(Leaf mold)',
+      'Septoria_leaf_spot': 'โรคใบจุดวงกลม$sep(Septoria leaf spot)',
+      'healthy': 'ใบมะเขือเทศสุขภาพดี$sep(Healthy)',
+      'Unknown': 'ไม่สามารถระบุได้$sep(Unknown)',
+    };
+
+    return diseaseMap[cleanName] ?? cleanName.replaceAll('_', ' ');
   }
 
   String _formatDate(DateTime date) {
@@ -88,7 +103,7 @@ class ScanHistoryList extends StatelessWidget {
                           fontSize: 16,
                           color: Colors.black87,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),

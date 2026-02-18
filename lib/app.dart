@@ -16,6 +16,16 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
+  bool _isNavBarVisible = true;
+
+  void _toggleNavBar(bool isVisible) {
+    if (_isNavBarVisible != isVisible) {
+      setState(() {
+        _isNavBarVisible = isVisible;
+      });
+    }
+  }
+
   List<Widget> get _pages => [
     SingleChildScrollView(
       child: Column(
@@ -29,7 +39,10 @@ class _MainAppState extends State<MainApp> {
         ],
       ),
     ),
-    MainCamera(onBackPressed: () => _onItemTapped(0)),
+    MainCamera(
+      onBackPressed: () => _onItemTapped(0),
+      onToggleNavBar: _toggleNavBar,
+    ),
     MainHistory(onBackPressed: () => _onItemTapped(0)),
   ];
 
@@ -45,45 +58,45 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         backgroundColor: Colors.white.withOpacity(0.95),
         body: _pages[_currentIndex],
-
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: _onItemTapped,
-            backgroundColor: Colors.white,
-
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: Colors.grey,
-            showUnselectedLabels: true,
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(LucideIcons.house),
-                activeIcon: _buildActiveIcon(LucideIcons.house),
-                label: 'หน้าแรก',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(LucideIcons.camera),
-                activeIcon: _buildActiveIcon(LucideIcons.camera),
-                label: 'สแกน',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(LucideIcons.history),
-                activeIcon: _buildActiveIcon(LucideIcons.history),
-                label: 'ประวัติ',
-              ),
-            ],
-          ),
-        ),
+        bottomNavigationBar: _isNavBarVisible
+            ? Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: BottomNavigationBar(
+                  currentIndex: _currentIndex,
+                  onTap: _onItemTapped,
+                  backgroundColor: Colors.white,
+                  selectedItemColor: AppColors.primary,
+                  unselectedItemColor: Colors.grey,
+                  showUnselectedLabels: true,
+                  type: BottomNavigationBarType.fixed,
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: const Icon(LucideIcons.house),
+                      activeIcon: _buildActiveIcon(LucideIcons.house),
+                      label: 'หน้าแรก',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(LucideIcons.camera),
+                      activeIcon: _buildActiveIcon(LucideIcons.camera),
+                      label: 'สแกน',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(LucideIcons.history),
+                      activeIcon: _buildActiveIcon(LucideIcons.history),
+                      label: 'ประวัติ',
+                    ),
+                  ],
+                ),
+              )
+            : null,
       ),
       title: 'Tomato Guard',
       debugShowCheckedModeBanner: false,

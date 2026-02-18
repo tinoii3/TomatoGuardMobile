@@ -80,7 +80,6 @@ class _MainHistoryState extends State<MainHistory> {
   }
 
   void _onFilterSelected(String filter) {
-    // ถ้าเลือก Filter เดิม ไม่ต้อง Rebuild ให้เปลืองแรง
     if (_selectedFilter == filter) return;
 
     setState(() {
@@ -180,20 +179,19 @@ class _MainHistoryState extends State<MainHistory> {
                     ),
                   ),
                 ),
-
-                // --- ส่วนรายการ (Body) ---
                 Expanded(
                   child: historyItems.isEmpty
                       ? _buildEmptyState()
-                      : ScanHistoryList(
-                          // เรียกใช้ Widget ที่ปรับจูนแล้วด้านล่าง
-                          items: historyItems,
-                          // ไม่ต้องส่ง limit ก็ได้ถ้าไม่ได้ใช้
-                          showDeleteIcon: true,
-                          onDelete: (index) => _deleteItem(index),
-                          onTap: (index) {
-                            // Handle tap
-                          },
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: ScanHistoryList(
+                            items: historyItems,
+                            showDeleteIcon: true,
+                            onDelete: (index) => _confirmDeleteOne(index),
+                            onTap: (index) {
+                              // ใส่โค้ดกดดูรายละเอียดถ้ามี
+                            },
+                          ),
                         ),
                 ),
               ],
@@ -219,7 +217,7 @@ class _MainHistoryState extends State<MainHistory> {
     );
   }
 
-  Future<void> _deleteItem(int index) async {
+  Future<void> _performDelete(int index) async {
     final recordToDelete = historyItems[index];
     if (recordToDelete.recordId != null) {
       await DatabaseHelper.instance.deleteRecord(recordToDelete.recordId!);
@@ -232,6 +230,63 @@ class _MainHistoryState extends State<MainHistory> {
       const SnackBar(
         content: Text("ลบรายการเรียบร้อย"),
         duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void _confirmDeleteOne(int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text(
+          "ลบรายการ",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text("คุณต้องการลบประวัติรายการนี้ใช่หรือไม่?"),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text("ยกเลิก"),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    await _performDelete(index);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, // ใช้สีแดงเหมือนลบทั้งหมด
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text("ลบ"),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

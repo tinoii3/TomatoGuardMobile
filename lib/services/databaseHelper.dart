@@ -123,7 +123,7 @@ class DatabaseHelper {
 
     if (mostCommonResult.isNotEmpty) {
       mostCommon = mostCommonResult.first['disease_name'] as String;
-      mostCommon = mostCommon.replaceAll('Tomato_', '').replaceAll('_', ' ');
+      // mostCommon = mostCommon.replaceAll('Tomato_', '').replaceAll('_', ' ');
     }
 
     return {

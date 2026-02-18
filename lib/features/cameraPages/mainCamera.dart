@@ -15,8 +15,9 @@ import 'package:path/path.dart' as path;
 
 class MainCamera extends StatefulWidget {
   final VoidCallback? onBackPressed;
+  final Function(bool)? onToggleNavBar;
 
-  const MainCamera({super.key, this.onBackPressed});
+  const MainCamera({super.key, this.onBackPressed, this.onToggleNavBar});
 
   @override
   State<MainCamera> createState() => _MainCameraState();
@@ -30,7 +31,19 @@ class _MainCameraState extends State<MainCamera> {
   bool _isAnalyzing = false;
 
   String _formatDiseaseName(String rawName) {
-    return rawName.replaceAll('Tomato_', '').replaceAll('_', ' ');
+    String cleanName = rawName.replaceAll('Tomato_', '').trim();
+
+    final Map<String, String> diseaseMap = {
+      'Bacterial_spot': 'โรคใบจุดแบคทีเรีย (Bacterial spot)',
+      'Early_blight': 'โรคใบจุดวง (Early blight)',
+      'Late_blight': 'โรคใบไหม้ (Late blight)',
+      'Leaf_Mold': 'โรครากำมะหยี่ (Leaf mold)',
+      'Septoria_leaf_spot': 'โรคใบจุดวงกลม (Septoria leaf spot)',
+      'healthy': 'ใบมะเขือเทศสุขภาพดี (Healthy)',
+      'Unknown': 'ไม่สามารถระบุได้ (Unknown)',
+    };
+
+    return diseaseMap[cleanName] ?? cleanName.replaceAll('_', ' ');
   }
 
   @override
@@ -52,6 +65,7 @@ class _MainCameraState extends State<MainCamera> {
       _isAnalyzing = false;
       _lastImageSource = null;
     });
+    widget.onToggleNavBar?.call(true);
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -66,6 +80,7 @@ class _MainCameraState extends State<MainCamera> {
           _selectedImage = File(pickedFile.path);
           _lastImageSource = source;
         });
+        widget.onToggleNavBar?.call(false);
       }
     } catch (e) {
       print("Error picking image: $e");
@@ -321,88 +336,106 @@ class _MainCameraState extends State<MainCamera> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.black),
-          onPressed: () {
-            if (widget.onBackPressed != null) {
-              widget.onBackPressed!();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        title: const Text(
-          'สแกนใบมะเขือเทศ',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+
+        if (_selectedImage != null) {
+          _clearImage();
+        } else {
+          if (widget.onBackPressed != null) {
+            widget.onBackPressed!();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft, color: Colors.black),
+            onPressed: () {
+              if (_selectedImage != null) {
+                _clearImage();
+              } else {
+                if (widget.onBackPressed != null) {
+                  widget.onBackPressed!();
+                } else {
+                  Navigator.of(context).pop();
+                }
+              }
+            },
           ),
-        ),
-        backgroundColor: Colors.white,
-        titleSpacing: 10,
-        elevation: 0,
-        actions: [
-          if (_selectedImage != null)
-            IconButton(
-              icon: const Icon(LucideIcons.refreshCcw, color: Colors.black),
-              onPressed: _clearImage,
-              tooltip: 'ลบรูปภาพ',
+          title: const Text(
+            'สแกนใบมะเขือเทศ',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
-        ],
-      ),
-      backgroundColor: Colors.grey[200],
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            const Text(
-              'วิเคราะห์โรคด้วย AI',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+          ),
+          backgroundColor: Colors.white,
+          titleSpacing: 10,
+          elevation: 0,
+          actions: [
+            if (_selectedImage != null)
+              IconButton(
+                icon: const Icon(LucideIcons.refreshCcw, color: Colors.black),
+                onPressed: _clearImage,
+                tooltip: 'ลบรูปภาพ',
               ),
-            ),
-            const SizedBox(height: 5),
-            const Text(
-              'ถ่ายรูปหรือเลือกภาพใบมะเขือเทศ',
-              style: TextStyle(color: Colors.black, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _selectedImage != null
-                  ? ImagePreview(imageFile: _selectedImage!)
-                  : UploadPlaceholder(
-                      onCameraTap: () => _pickImage(ImageSource.camera),
-                      onGalleryTap: () => _pickImage(ImageSource.gallery),
-                    ),
-            ),
-
-            const SizedBox(height: 20),
-
-            if (_selectedImage == null) ...[const CameraTips()],
-
-            if (_selectedImage != null) ...[
-              const SizedBox(height: 20),
-              AnalysisActions(
-                isAnalyzing: _isAnalyzing,
-                onAnalyze: _runAnalysis,
-                lastImageSource: _lastImageSource,
-                onRetake: () {
-                  if (_lastImageSource != null) {
-                    _pickImage(_lastImageSource!);
-                  }
-                },
-              ),
-            ],
-
-            const SizedBox(height: 40),
           ],
+        ),
+        backgroundColor: Colors.grey[200],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'วิเคราะห์โรคด้วย AI',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                'ถ่ายรูปหรือเลือกภาพใบมะเขือเทศ',
+                style: TextStyle(color: Colors.black, fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _selectedImage != null
+                    ? ImagePreview(imageFile: _selectedImage!)
+                    : UploadPlaceholder(
+                        onCameraTap: () => _pickImage(ImageSource.camera),
+                        onGalleryTap: () => _pickImage(ImageSource.gallery),
+                      ),
+              ),
+
+              const SizedBox(height: 20),
+
+              if (_selectedImage == null) ...[const CameraTips()],
+
+              if (_selectedImage != null) ...[
+                const SizedBox(height: 20),
+                AnalysisActions(
+                  isAnalyzing: _isAnalyzing,
+                  onAnalyze: _runAnalysis,
+                  lastImageSource: _lastImageSource,
+                  onRetake: () {
+                    if (_lastImageSource != null) {
+                      _pickImage(_lastImageSource!);
+                    }
+                  },
+                ),
+              ],
+
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

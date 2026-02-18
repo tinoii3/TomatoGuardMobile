@@ -23,6 +23,23 @@ class StatCard extends StatefulWidget {
 }
 
 class _StatCardState extends State<StatCard> {
+  String _formatDiseaseName(String rawName) {
+    if (rawName == "-" || int.tryParse(rawName) != null) return rawName;
+    String cleanName = rawName.replaceAll('Tomato_', '').trim();
+
+    final Map<String, String> diseaseMap = {
+      'Bacterial_spot': 'โรคใบจุดแบคทีเรีย (Bacterial spot)',
+      'Early_blight': 'โรคใบจุดวง (Early blight)',
+      'Late_blight': 'โรคใบไหม้ (Late blight)',
+      'Leaf_Mold': 'โรครากำมะหยี่ (Leaf mold)',
+      'Septoria_leaf_spot': 'โรคใบจุดวงกลม (Septoria leaf spot)',
+      'healthy': 'ใบมะเขือเทศสุขภาพดี (Healthy)',
+      'Unknown': 'ไม่สามารถระบุได้ (Unknown)',
+    };
+
+    return diseaseMap[cleanName] ?? cleanName.replaceAll('_', ' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -72,7 +89,7 @@ class _StatCardState extends State<StatCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  widget.value,
+                  _formatDiseaseName(widget.value),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
