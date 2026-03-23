@@ -267,8 +267,9 @@ class _MainCameraState extends State<MainCamera> {
       icon = LucideIcons.ban;
       iconColor = Colors.red;
     } else {
+      String formattedLabel = _formatDiseaseName(label);
       messageText =
-          "ความมั่นใจต่ำ (${confidence.toStringAsFixed(1)}%)\nภาพอาจไม่ชัด หรือแสงน้อยเกินไป";
+          "คาดเดาว่าเป็น:\n$formattedLabel\n\nแต่ความมั่นใจต่ำ (${confidence.toStringAsFixed(1)}%)\nภาพอาจไม่ชัด หรือแสงน้อยเกินไป";
     }
 
     showDialog(
@@ -310,10 +311,8 @@ class _MainCameraState extends State<MainCamera> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // แนะนำให้ reset เพื่อให้ user ถ่ายใหม่
               _clearImage();
               if (_lastImageSource != null) {
-                // เปิดกล้องให้เลยทันที (User Friendly)
                 _pickImage(_lastImageSource!);
               }
             },

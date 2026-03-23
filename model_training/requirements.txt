@@ -1,0 +1,10 @@
+tensorflow>=2.0.0
+Pillow
+matplotlib
+pandas
+numpy
+seaborn
+opencv-python
+scikit-learn
+tqdm
+kagglehub
