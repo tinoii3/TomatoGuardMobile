@@ -38,5 +38,4 @@
    ```bash
    flutter run
 
-
 ## folder model_training for file Jupyter Notebook ('.ipynb')
