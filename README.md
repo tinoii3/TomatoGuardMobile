@@ -1,41 +1,48 @@
 # 🍅 Tomato Guard: Tomato Leaf Disease Classification App
 
-โมบายแอปพลิเคชันสำหรับการจำแนกโรคใบมะเขือเทศด้วยเทคนิคโครงข่ายประสาทเทียมแบบคอนโวลูชัน (CNN) โดยใช้สถาปัตยกรรม **MobileNetV2**
+A mobile application for classifying tomato leaf diseases using Convolutional Neural Networks (CNN) with the **MobileNetV2** architecture.
 
-## ✨ ฟีเจอร์หลัก (Features)
-- 📷 **Real-time Classification:** สแกนและวิเคราะห์โรคใบมะเขือเทศผ่านกล้องถ่ายรูป หรือเลือกจากคลังภาพ (Gallery)
-- 🧠 **Offline AI Engine:** ประมวลผลด้วยโมเดล TensorFlow Lite (TFLite) ภายในตัวเครื่อง รวดเร็วและไม่ต้องใช้เน็ต
-- 🛡️ **Outlier Detection (Unknown Class):** มีระบบป้องกันการทำนายผิดพลาดเมื่อสแกนภาพที่ไม่ใช่ใบพืช หรือภาพขยะ 
-- ⚠️ **Confidence Threshold:** มีเกณฑ์ความมั่นใจขั้นต่ำ (ุ60%) ระบบจะแจ้งเตือนให้ถ่ายใหม่หากภาพไม่ชัดเจน
-- 📊 **Scan History & Statistics:** บันทึกประวัติการสแกนอัตโนมัติด้วยฐานข้อมูล SQLite และสรุปสถิติโรคที่พบบ่อย
+## ✨ Key Features
+- 📷 **Real-time classification:** Scan and analyze tomato leaf diseases using the camera, or select an image from the gallery.
+- 🧠 **Offline AI engine:** Runs on-device with a TensorFlow Lite (TFLite) model for fast inference without an internet connection.
+- 🛡️ **Outlier detection (Unknown class):** Helps prevent incorrect predictions when scanning non-leaf / irrelevant images.
+- ⚠️ **Confidence threshold:** Enforces a minimum confidence (60%). The app prompts you to retake the photo if the image is unclear.
+- 📊 **Scan history & statistics:** Automatically stores scan history in SQLite and summarizes frequently detected diseases.
 
-## 🦠 โรคที่สามารถจำแนกได้ (Supported Classes)
-1. โรคใบจุดแบคทีเรีย (Bacterial Spot)
-2. โรคใบจุดวง (Early Blight)
-3. โรคใบไหม้ (Late Blight)
-4. โรครากำมะหยี่ (Leaf Mold)
-5. โรคใบจุดวงกลม (Septoria Leaf Spot)
-6. ใบสุขภาพดี (Healthy)
-7. *ไม่สามารถระบุได้ (Unknown / Outlier)*
+## 🦠 Supported Classes
+1. Bacterial Spot
+2. Early Blight
+3. Late Blight
+4. Leaf Mold
+5. Septoria Leaf Spot
+6. Healthy
+7. *Unknown / Outlier*
 
-## 🛠️ เครื่องมือและเทคโนโลยี (Tech Stack)
+## 🛠️ Tech Stack
 - **Frontend / Mobile Framework:** Flutter (Dart)
 - **Machine Learning:** TensorFlow, Keras, MobileNetV2
 - **On-Device ML:** TensorFlow Lite (`tflite_flutter`)
 - **Local Database:** SQLite (`sqflite`)
 
-## 🚀 วิธีการติดตั้งและรันโปรเจกต์ (Installation)
-1. โคลน Repository นี้ลงในเครื่องของคุณ
-   ```bash
-   git clone [https://github.com/your-username/tomato-guard-mobile.git](https://github.com/your-username/tomato-guard-mobile.git)
+## 🚀 Installation
+1. Clone this repository
 
-2. เข้าไปที่โฟลเดอร์โปรเจกต์และติดตั้ง Packages
-   ```bash
-   cd tomato-guard-mobile
-   flutter pub get
+```bash
+git clone https://github.com/your-username/tomato-guard-mobile.git
+```
 
-3. รันแอปพลิเคชันบน Emulator หรือเครื่องจริง
-   ```bash
-   flutter run
+2. Go to the project folder and install dependencies
 
-## folder model_training for file Jupyter Notebook ('.ipynb')
+```bash
+cd tomato-guard-mobile
+flutter pub get
+```
+
+3. Run the app on an emulator or a physical device
+
+```bash
+flutter run
+```
+
+## Notes
+- The `model_training/` folder contains Jupyter Notebooks (`.ipynb`) for training the model.

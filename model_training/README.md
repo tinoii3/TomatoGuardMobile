@@ -1,10 +1,12 @@
 # 🧠 Tomato Guard: Model Training
 
-โฟลเดอร์นี้รวบรวม Source Code (Jupyter Notebook) และขั้นตอนการเตรียมข้อมูลสำหรับการฝึกสอน (Training) โครงข่ายประสาทเทียมแบบคอนโวลูชัน (CNN) โดยใช้สถาปัตยกรรม **MobileNetV2** เพื่อจำแนกโรคใบมะเขือเทศ
+This folder contains the source code (Jupyter Notebooks) and data preparation steps for training a Convolutional Neural Network (CNN) using the **MobileNetV2** architecture to classify tomato leaf diseases.
 
-## 📦 การติดตั้งและการใช้งาน (Setup & Usage)
+## 📦 Setup & Usage
 
-1. แนะนำให้รันโค้ดผ่าน **Google Colab** เพื่อความรวดเร็วในการประมวลผลด้วย GPU
-2. หากต้องการรันบนเครื่องคอมพิวเตอร์ส่วนตัว (Local Machine) กรุณาติดตั้งไลบรารีที่จำเป็นด้วยคำสั่ง:
-   ```bash
-   pip install -r requirements.txt
+1. Recommended: run the notebooks on **Google Colab** for faster GPU acceleration.
+2. To run on a local machine, install the required libraries:
+
+```bash
+pip install -r requirements.txt
+```
